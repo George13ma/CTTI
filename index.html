@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0e11">
   <title>CTTI — Crypto Trader Type Indicator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -511,6 +513,119 @@
 
     /* ── Shared ── */
     @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Share card (hidden offscreen, rendered to PNG via html2canvas) ── */
+    #sc-root {
+      position: fixed; top: 0; left: -9999px;
+      width: 360px;
+      font-family: 'Space Mono', monospace;
+      z-index: -1; pointer-events: none;
+    }
+    .sc-card {
+      width: 360px;
+      background: #161b1f;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .sc-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--sc-accent,#fbbf24) 0%, #fff 50%, var(--sc-accent,#fbbf24) 100%);
+    }
+    .sc-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 20px 12px;
+    }
+    .sc-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 3px;
+      color: rgba(255,255,255,0.2);
+    }
+    .sc-grade-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px; letter-spacing: 2px;
+      color: var(--sc-accent,#fbbf24);
+      border: 1px solid var(--sc-accent-border,rgba(251,191,36,0.4));
+      padding: 3px 10px; border-radius: 4px;
+    }
+    .sc-image-wrap {
+      margin: 0 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: #1e262b;
+      aspect-ratio: 1 / 1;
+    }
+    .sc-image-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center center;
+      display: block;
+    }
+    .sc-image-wrap::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 50px;
+      background: linear-gradient(to top, rgba(22,27,31,1), rgba(22,27,31,0));
+    }
+    .sc-info { padding: 16px 20px 10px; }
+    .sc-type-row {
+      display: flex; align-items: baseline; gap: 10px;
+      margin-bottom: 4px;
+    }
+    .sc-code {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px; letter-spacing: 4px;
+      color: #fff; line-height: 1;
+    }
+    .sc-sub-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px; letter-spacing: 2px;
+      color: var(--sc-accent,#4ade80);
+    }
+    .sc-potential {
+      font-size: 10px; letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .sc-potential span { color: rgba(255,255,255,0.5); }
+    .sc-divider {
+      height: 1px; background: rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+    .sc-meta-row {
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .sc-meta-label {
+      font-size: 9px; letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sc-meta-value {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-weight: 900; font-size: 18px;
+      color: var(--sc-accent,#fbbf24);
+    }
+    .sc-meta-value-right {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+    }
+    .sc-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 20px 16px;
+    }
+    .sc-stars { display: flex; gap: 3px; }
+    .sc-star { font-size: 16px; }
+    .sc-star.on { color: var(--sc-accent,#fbbf24); }
+    .sc-star.off { color: rgba(255,255,255,0.15); }
+    .sc-domain {
+      font-size: 10px; letter-spacing: 1px;
+      color: rgba(255,255,255,0.2);
+    }
   </style>
 </head>
 <body>
@@ -528,6 +643,41 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Hidden share card (rendered offscreen for html2canvas) -->
+<div id="sc-root">
+  <div class="sc-card" id="sc-card">
+    <div class="sc-header">
+      <div class="sc-brand">CTTI</div>
+      <div class="sc-grade-badge" id="sc-grade-badge">A · 潜力</div>
+    </div>
+    <div class="sc-image-wrap">
+      <img id="sc-img" src="" alt="" crossorigin="anonymous">
+    </div>
+    <div class="sc-info">
+      <div class="sc-type-row">
+        <div class="sc-code" id="sc-code">FACT</div>
+        <div class="sc-sub-grade" id="sc-sub-grade">A-</div>
+      </div>
+      <div class="sc-potential">POTENTIAL · <span id="sc-potential-span">潜力</span></div>
+      <div class="sc-divider"></div>
+      <div class="sc-meta-row">
+        <div>
+          <div class="sc-meta-label">NAME</div>
+          <div class="sc-meta-value" id="sc-name">闪电狙击手</div>
+        </div>
+        <div>
+          <div class="sc-meta-label" style="text-align:right">TYPE</div>
+          <div class="sc-meta-value-right" id="sc-type-desc">闪电·快手</div>
+        </div>
+      </div>
+    </div>
+    <div class="sc-footer">
+      <div class="sc-stars" id="sc-stars"></div>
+      <div class="sc-domain">ctti-blush.vercel.app</div>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════
      LANDING
@@ -564,7 +714,7 @@
       </button>
       <div class="qz-counter">
         <span class="qz-num" id="q-cur">1</span>
-        <span class="qz-denom">/ 8</span>
+        <span class="qz-denom">/ 24</span>
       </div>
       <div class="qz-pct-badge"><span id="q-pct">0</span>% 完成</div>
     </div>
@@ -633,43 +783,110 @@
 <script>
 /* ── Data ── */
 const QS = [
+  /* ── 维度1：交易频率 F（闪电出击）vs S（潜伏等待）── */
   {
     q: "你一周大概开几单？",
     opts: [
-      { l:"A", t:"10单以上",               dim:1, v:"F" },
-      { l:"B", t:"3–10单",                 dim:1, v:"N" },
-      { l:"C", t:"3单以下",                dim:1, v:"S" }
+      { l:"A", t:"10单以上",        dim:1, v:"F" },
+      { l:"B", t:"3–10单",          dim:1, v:"F" },
+      { l:"C", t:"3单以下",         dim:1, v:"S" }
     ]
   },
   {
     q: "没有持仓的时候你会？",
     opts: [
-      { l:"A", t:"浑身难受，想找机会进场",   dim:1, v:"F" },
-      { l:"B", t:"看看盘，有机会就做",        dim:1, v:"N" },
-      { l:"C", t:"挺好的，等着就行",          dim:1, v:"S" }
+      { l:"A", t:"浑身难受，想找机会进场",  dim:1, v:"F" },
+      { l:"B", t:"看看盘，有机会就做",      dim:1, v:"F" },
+      { l:"C", t:"挺好的，等着就行",        dim:1, v:"S" }
     ]
   },
   {
+    q: "行情横盘震荡，你一般怎么做？",
+    opts: [
+      { l:"A", t:"照样找机会做，震荡也能抓波动",  dim:1, v:"F" },
+      { l:"B", t:"减少频率，等方向明确再进",      dim:1, v:"S" }
+    ]
+  },
+  {
+    q: "你上一次超过一周没开单是什么时候？",
+    opts: [
+      { l:"A", t:"记不清了，停不下来",     dim:1, v:"F" },
+      { l:"B", t:"最近就有，很正常",       dim:1, v:"S" },
+      { l:"C", t:"主动休息过，但不常见",   dim:1, v:"F" }
+    ]
+  },
+  {
+    q: "朋友说某个币要拉了，你会？",
+    opts: [
+      { l:"A", t:"先进去再说，慢了就没了",       dim:1, v:"F" },
+      { l:"B", t:"看看再说，不急这一下",         dim:1, v:"S" },
+      { l:"C", t:"研究一下，觉得有逻辑再进",     dim:1, v:"S" }
+    ]
+  },
+  {
+    q: '你对"踏空"这件事怎么看？',
+    opts: [
+      { l:"A", t:"非常难受，宁可亏也不想踏空",   dim:1, v:"F" },
+      { l:"B", t:"还好，机会多的是",             dim:1, v:"S" }
+    ]
+  },
+
+  /* ── 维度2：仓位管理 A（梭哈重仓）vs D（分批建仓）── */
+  {
     q: "你通常单笔开仓占总资金多少？",
     opts: [
-      { l:"A", t:"50% 以上",               dim:2, v:"A" },
-      { l:"B", t:"20%–50%",               dim:2, v:"D" },
-      { l:"C", t:"20% 以下",               dim:2, v:"D" }
+      { l:"A", t:"50% 以上",    dim:2, v:"A" },
+      { l:"B", t:"20%–50%",    dim:2, v:"D" },
+      { l:"C", t:"20% 以下",   dim:2, v:"D" }
     ]
   },
   {
     q: "看到一个很有把握的机会，你会？",
     opts: [
-      { l:"A", t:"直接重仓干",              dim:2, v:"A" },
-      { l:"B", t:"先开一部分，对了再加",     dim:2, v:"D" }
+      { l:"A", t:"直接重仓干",             dim:2, v:"A" },
+      { l:"B", t:"先开一部分，对了再加",   dim:2, v:"D" }
     ]
   },
   {
+    q: "你同时最多会持有几个仓位？",
+    opts: [
+      { l:"A", t:"1个，专注一个打",          dim:2, v:"A" },
+      { l:"B", t:"2–3个，分散一点",          dim:2, v:"D" },
+      { l:"C", t:"4个以上，多点机会",        dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "账户亏了30%，你会怎么处理剩余资金？",
+    opts: [
+      { l:"A", t:"梭哈一把，争取一次扳回来",    dim:2, v:"A" },
+      { l:"B", t:"小仓位慢慢做，先稳住",        dim:2, v:"D" },
+      { l:"C", t:"暂停操作，冷静几天",          dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "你加仓的逻辑通常是？",
+    opts: [
+      { l:"A", t:"看对了就加，越涨越加",        dim:2, v:"A" },
+      { l:"B", t:"跌了摊低成本",               dim:2, v:"A" },
+      { l:"C", t:"很少加仓，开仓就是最终仓位",  dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "如果只剩最后一笔资金，你会？",
+    opts: [
+      { l:"A", t:"全押一个高把握的机会",         dim:2, v:"A" },
+      { l:"B", t:"分成几份，慢慢做回来",         dim:2, v:"D" },
+      { l:"C", t:"先不动，等状态好了再说",       dim:2, v:"D" }
+    ]
+  },
+
+  /* ── 维度3：止损习惯 C（铁血止损）vs H（死扛到底）── */
+  {
     q: "开仓前你会设止损吗？",
     opts: [
-      { l:"A", t:"必设，打到就走",           dim:3, v:"C" },
-      { l:"B", t:"设了但经常手动取消",        dim:3, v:"H" },
-      { l:"C", t:"不设，看情况",             dim:3, v:"H" }
+      { l:"A", t:"必设，打到就走",        dim:3, v:"C" },
+      { l:"B", t:"设了但经常手动取消",    dim:3, v:"H" },
+      { l:"C", t:"不设，看情况",          dim:3, v:"H" }
     ]
   },
   {
@@ -681,18 +898,84 @@ const QS = [
     ]
   },
   {
+    q: "你扛过最久的一笔亏损单多久？",
+    opts: [
+      { l:"A", t:"超过一个月",          dim:3, v:"H" },
+      { l:"B", t:"一周以内就止损了",    dim:3, v:"C" },
+      { l:"C", t:"几天，撑不住就走",    dim:3, v:"C" }
+    ]
+  },
+  {
+    q: "止损打了，你的第一反应是？",
+    opts: [
+      { l:"A", t:"果断，该走就走，下一个",         dim:3, v:"C" },
+      { l:"B", t:"心疼，总觉得再扛一下就回来了",  dim:3, v:"H" },
+      { l:"C", t:"怀疑自己设错了止损位",          dim:3, v:"H" }
+    ]
+  },
+  {
+    q: '你相信"只要不止损就没有亏损"这句话吗？',
+    opts: [
+      { l:"A", t:"相信，浮亏不是真亏",        dim:3, v:"H" },
+      { l:"B", t:"不信，浮亏就是亏",          dim:3, v:"C" },
+      { l:"C", t:"有时候会这样安慰自己",      dim:3, v:"H" }
+    ]
+  },
+  {
+    q: "行情反向运动，你通常会在什么时候离场？",
+    opts: [
+      { l:"A", t:"提前设好止损，自动执行",              dim:3, v:"C" },
+      { l:"B", t:"亏到心理承受极限才平仓",              dim:3, v:"H" },
+      { l:"C", t:"等反弹到成本价或者少亏一点再走",      dim:3, v:"H" }
+    ]
+  },
+
+  /* ── 维度4：决策依据 T（图表驱动）vs I（直觉驱动）── */
+  {
     q: "你开单主要依据什么？",
     opts: [
-      { l:"A", t:"K线、均线、指标",           dim:4, v:"T" },
-      { l:"B", t:"盘感、消息、感觉对了",       dim:4, v:"I" },
-      { l:"C", t:"两者结合",                 dim:4, v:"N" }
+      { l:"A", t:"K线、均线、指标",       dim:4, v:"T" },
+      { l:"B", t:"盘感、消息、感觉对了",  dim:4, v:"I" },
+      { l:"C", t:"两者结合",             dim:4, v:"T" }
     ]
   },
   {
     q: "图表显示该卖，但直觉觉得还能涨，你会？",
     opts: [
-      { l:"A", t:"听图表，卖",              dim:4, v:"T" },
-      { l:"B", t:"听直觉，拿着",            dim:4, v:"I" }
+      { l:"A", t:"听图表，卖",    dim:4, v:"T" },
+      { l:"B", t:"听直觉，拿着",  dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "你复盘的时候主要看什么？",
+    opts: [
+      { l:"A", t:"K线走势、入场点位对不对",       dim:4, v:"T" },
+      { l:"B", t:"当时的感觉和判断对不对",        dim:4, v:"I" },
+      { l:"C", t:"很少复盘",                     dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "一个你完全没研究过的币突然大涨，你会？",
+    opts: [
+      { l:"A", t:"先看图，有结构再考虑进",           dim:4, v:"T" },
+      { l:"B", t:"感觉势头对就进，研究来不及",       dim:4, v:"I" },
+      { l:"C", t:"不进，不熟的不碰",                 dim:4, v:"T" }
+    ]
+  },
+  {
+    q: "你最信任哪种开单理由？",
+    opts: [
+      { l:"A", t:"有明确的支撑压力位和技术信号",     dim:4, v:"T" },
+      { l:"B", t:"盯盘久了，感觉这波要动",           dim:4, v:"I" },
+      { l:"C", t:"别人推荐+自己感觉对",              dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "连续亏了三单，你会怎么调整？",
+    opts: [
+      { l:"A", t:"重新看图，找哪里判断出了问题",     dim:4, v:"T" },
+      { l:"B", t:"状态不对，先停一下找感觉",        dim:4, v:"I" },
+      { l:"C", t:"换个币种试试",                   dim:4, v:"I" }
     ]
   }
 ];
@@ -933,17 +1216,22 @@ function goBack() {
 
 /* ── Scoring ── */
 function calcResult() {
-  const d1 = score(ans[0], ans[1], 'F', 'S', 'F');
-  const d2 = score(ans[2], ans[3], 'A', 'D', 'D');
-  const d3 = score(ans[4], ans[5], 'C', 'H', 'H');
-  const d4 = score(ans[6], ans[7], 'T', 'I', 'T');
+  const dimOf = q => q.opts[0].dim;
+  const dim1 = QS.reduce((acc, q, i) => dimOf(q) === 1 ? [...acc, ans[i]] : acc, []);
+  const dim2 = QS.reduce((acc, q, i) => dimOf(q) === 2 ? [...acc, ans[i]] : acc, []);
+  const dim3 = QS.reduce((acc, q, i) => dimOf(q) === 3 ? [...acc, ans[i]] : acc, []);
+  const dim4 = QS.reduce((acc, q, i) => dimOf(q) === 4 ? [...acc, ans[i]] : acc, []);
+  const d1 = majority(dim1, 'F', 'S');
+  const d2 = majority(dim2, 'A', 'D');
+  const d3 = majority(dim3, 'C', 'H');
+  const d4 = majority(dim4, 'T', 'I');
   showResult(d1 + d2 + d3 + d4);
 }
 
-function score(a, b, posV, negV, tie) {
-  let pos = 0, neg = 0;
-  [a, b].forEach(v => { if (v === posV) pos++; else if (v === negV) neg++; });
-  return pos > neg ? posV : neg > pos ? negV : tie;
+function majority(votes, posV, negV) {
+  const pos = votes.filter(v => v === posV).length;
+  const neg = votes.filter(v => v === negV).length;
+  return pos >= neg ? posV : negV;
 }
 
 /* ── Tier helper ── */
@@ -1078,26 +1366,79 @@ function scramble(el, final, dur) {
   }, iv);
 }
 
-/* ── Share: always copy + show "已复制" ── */
-function shareResult() {
-  const type = window._resultType || '';
-  const name = window._resultName || '';
-  const text = `我的合约交易人格是 ${type}「${name}」\n— CTTI Crypto Trader Type Indicator`;
-  const url  = window.location.href;
-  const full = text + '\n' + url;
+/* ── Share card data (TYPE description + stars per personality) ── */
+const SHARE_CARDS = {
+  FACT:{type:'闪电·快手',stars:4}, FACI:{type:'闪电·直觉',stars:4},
+  FAHT:{type:'梭哈·技术',stars:3}, FAHI:{type:'梭哈·直觉',stars:3},
+  FDCT:{type:'节奏·系统',stars:5}, FDCI:{type:'灵动·直觉',stars:4},
+  FDHT:{type:'分仓·技术',stars:4}, FDHI:{type:'分仓·直觉',stars:3},
+  SACT:{type:'冷血·精准',stars:5}, SACI:{type:'潜伏·豹子',stars:4},
+  SAHT:{type:'钻石·长线',stars:3}, SAHI:{type:'佛系·躺平',stars:3},
+  SDCT:{type:'理性·建筑',stars:5}, SDCI:{type:'稳健·老手',stars:5},
+  SDHT:{type:'图表·坚守',stars:4}, SDHI:{type:'冬眠·淡定',stars:3}
+};
+const SHARE_TIERS = {
+  5:{rank:'S+',short:'王牌',letter:'S',color:'#4ade80',border:'rgba(74,222,128,0.4)'},
+  4:{rank:'A-',short:'潜力',letter:'A',color:'#fbbf24',border:'rgba(251,191,36,0.4)'},
+  3:{rank:'B+',short:'幸存',letter:'B',color:'#ef4444',border:'rgba(239,68,68,0.4)'}
+};
 
-  // Always copy to clipboard and show feedback
-  doCopy(full, () => {
-    const lbl = document.getElementById('share-label');
-    lbl.textContent = '已复制 ✓';
-    showToast('链接已复制到剪贴板 ✓');
-    setTimeout(() => { lbl.textContent = '分享结果'; }, 2500);
-  });
-
-  // Also try native share on mobile (fire-and-forget)
-  if (navigator.share) {
-    navigator.share({ title: 'CTTI — Crypto Trader Type Indicator', text, url }).catch(() => {});
+/* Populate the hidden share card with a given type */
+function populateShareCard(type) {
+  const name = (RESULTS[type] || RESULTS.FDCT).name;
+  const sc = SHARE_CARDS[type] || SHARE_CARDS.FDCT;
+  const tier = SHARE_TIERS[sc.stars];
+  const card = document.getElementById('sc-card');
+  card.style.setProperty('--sc-accent', tier.color);
+  card.style.setProperty('--sc-accent-border', tier.border);
+  document.getElementById('sc-code').textContent = type;
+  document.getElementById('sc-img').src = `images/${type}.png`;
+  document.getElementById('sc-grade-badge').textContent = `${tier.letter} · ${tier.short}`;
+  document.getElementById('sc-sub-grade').textContent = tier.rank;
+  document.getElementById('sc-potential-span').textContent = tier.short;
+  document.getElementById('sc-name').textContent = name;
+  document.getElementById('sc-type-desc').textContent = sc.type;
+  let starHTML = '';
+  for (let i = 0; i < 5; i++) {
+    starHTML += `<span class="sc-star ${i < sc.stars ? 'on' : 'off'}">★</span>`;
   }
+  document.getElementById('sc-stars').innerHTML = starHTML;
+}
+
+/* Render share card to a PNG blob */
+async function generateCardBlob(type) {
+  populateShareCard(type);
+  // wait for image load
+  const img = document.getElementById('sc-img');
+  await new Promise(r => {
+    if (img.complete && img.naturalWidth) r();
+    else { img.onload = r; img.onerror = r; }
+  });
+  // wait for fonts
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e) {}
+  }
+  const canvas = await html2canvas(document.getElementById('sc-card'), {
+    backgroundColor: null,
+    scale: 2,
+    logging: false,
+    useCORS: true
+  });
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+/* ── Share: open X compose directly with text + environment-matched URL ── */
+const PROD_URL = 'https://ctti-blush.vercel.app/';
+function getShareUrl() {
+  // prod domain → always use the clean prod URL
+  if (location.hostname === 'ctti-blush.vercel.app') return PROD_URL;
+  // staging / local → share current origin so the tweet links back to the same env
+  return location.origin + '/';
+}
+function shareResult() {
+  const text = `快来测测你的交易人格\n${getShareUrl()}`;
+  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.location.href = intentUrl;
 }
 
 function doCopy(text, onSuccess) {
