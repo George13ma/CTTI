@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTTI Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: transparent;
+      font-family: 'Space Mono', monospace;
+      width: 360px;
+    }
+    body { overflow: hidden; }
+    .card {
+      width: 360px;
+      background: #161b1f;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #fbbf24 0%, #4ade80 50%, #fbbf24 100%);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 12px;
+    }
+    .brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.2);
+    }
+    .grade-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+    .image-wrap {
+      margin: 0 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: #1e262b;
+      aspect-ratio: 1 / 1;
+    }
+    .image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+    .image-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50px;
+      background: linear-gradient(to top, rgba(22,27,31,1), rgba(22,27,31,0));
+    }
+    .info {
+      padding: 16px 20px 10px;
+    }
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .code {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px;
+      letter-spacing: 4px;
+      color: #fff;
+      line-height: 1;
+    }
+    .sub-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: #4ade80;
+      letter-spacing: 2px;
+    }
+    .potential {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .potential span {
+      color: rgba(255,255,255,0.5);
+    }
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .meta-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .meta-value {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fbbf24;
+    }
+    .meta-value-right {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 20px 16px;
+    }
+    .stars {
+      display: flex;
+      gap: 3px;
+    }
+    .star {
+      font-size: 16px;
+    }
+    .star.on { color: #fbbf24; }
+    .star.off { color: rgba(255,255,255,0.15); }
+    .domain {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="brand">CTTI</div>
+      <div class="grade-badge" id="r-grade-badge">A · 潜力</div>
+    </div>
+    <div class="image-wrap">
+      <img id="r-img" src="" alt="">
+    </div>
+    <div class="info">
+      <div class="type-row">
+        <div class="code" id="r-code">FACT</div>
+        <div class="sub-grade" id="r-subgrade">A-</div>
+      </div>
+      <div class="potential">POTENTIAL · <span id="r-potential-span">潜力</span></div>
+      <div class="divider"></div>
+      <div class="meta-row">
+        <div>
+          <div class="meta-label">NAME</div>
+          <div class="meta-value" id="r-name">闪电狙击手</div>
+        </div>
+        <div>
+          <div class="meta-label" style="text-align:right">TYPE</div>
+          <div class="meta-value-right" id="r-type-desc">闪电·快手</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="stars" id="r-stars"></div>
+      <div class="domain">ctti-blush.vercel.app</div>
+    </div>
+  </div>
+  <script>
+    const CARDS = {
+      FACT: { name:'闪电狙击手', type:'闪电·快手',   stars:4 },
+      FACI: { name:'直觉闪击者', type:'闪电·直觉',   stars:4 },
+      FAHT: { name:'孤注一掷者', type:'梭哈·技术',   stars:3 },
+      FAHI: { name:'极限心跳王', type:'梭哈·直觉',   stars:3 },
+      FDCT: { name:'节奏大师',   type:'节奏·系统',   stars:5 },
+      FDCI: { name:'灵动游击手', type:'灵动·直觉',   stars:4 },
+      FDHT: { name:'技术坚守者', type:'分仓·技术',   stars:4 },
+      FDHI: { name:'直觉漂流者', type:'分仓·直觉',   stars:3 },
+      SACT: { name:'冷血猎人',   type:'冷血·精准',   stars:5 },
+      SACI: { name:'豹子捕猎者', type:'潜伏·豹子',   stars:4 },
+      SAHT: { name:'钻石手信徒', type:'钻石·长线',   stars:3 },
+      SAHI: { name:'佛系躺平者', type:'佛系·躺平',   stars:3 },
+      SDCT: { name:'理性建筑师', type:'理性·建筑',   stars:5 },
+      SDCI: { name:'稳健直觉派', type:'稳健·老手',   stars:5 },
+      SDHT: { name:'图表坚守者', type:'图表·坚守',   stars:4 },
+      SDHI: { name:'冬眠交易员', type:'冬眠·淡定',   stars:3 }
+    };
+    const TIERS = {
+      5: { rank:'S+', short:'王牌', letter:'S', color:'#4ade80', border:'rgba(74,222,128,0.4)' },
+      4: { rank:'A-', short:'潜力', letter:'A', color:'#fbbf24', border:'rgba(251,191,36,0.4)' },
+      3: { rank:'B+', short:'幸存', letter:'B', color:'#ef4444', border:'rgba(239,68,68,0.4)' }
+    };
+
+    const params = new URLSearchParams(location.search);
+    const code = (params.get('type') || 'FACT').toUpperCase();
+    const data = CARDS[code] || CARDS.FACT;
+    const tier = TIERS[data.stars] || TIERS[3];
+
+    document.title = `CTTI ${code}`;
+    document.getElementById('r-code').textContent = code;
+    document.getElementById('r-img').src = `images/${code}.png`;
+    document.getElementById('r-img').alt = code;
+
+    const gb = document.getElementById('r-grade-badge');
+    gb.textContent = `${tier.letter} · ${tier.short}`;
+    gb.style.color = tier.color;
+    gb.style.borderColor = tier.border;
+
+    const sg = document.getElementById('r-subgrade');
+    sg.textContent = tier.rank;
+    sg.style.color = tier.color;
+
+    document.getElementById('r-potential-span').textContent = tier.short;
+
+    const nm = document.getElementById('r-name');
+    nm.textContent = data.name;
+    nm.style.color = tier.color;
+
+    document.getElementById('r-type-desc').textContent = data.type;
+
+    // top accent bar: tint with tier color
+    const style = document.createElement('style');
+    style.textContent = `.card::before { background: linear-gradient(90deg, ${tier.color} 0%, #fff 50%, ${tier.color} 100%); }`;
+    document.head.appendChild(style);
+
+    // stars
+    let starHTML = '';
+    for (let i = 0; i < 5; i++) {
+      starHTML += `<span class="star ${i < data.stars ? 'on' : 'off'}">★</span>`;
+    }
+    const starsEl = document.getElementById('r-stars');
+    starsEl.innerHTML = starHTML;
+    starsEl.querySelectorAll('.star.on').forEach(s => s.style.color = tier.color);
+
+    // wait for fonts + image, then fit body to card
+    window.__cardReady = false;
+    Promise.all([document.fonts.ready, new Promise(r => {
+      const img = document.getElementById('r-img');
+      if (img.complete) r();
+      else { img.onload = r; img.onerror = r; }
+    })]).then(() => {
+      const card = document.querySelector('.card');
+      const h = Math.ceil(card.getBoundingClientRect().height);
+      document.body.style.height = h + 'px';
+      document.documentElement.style.height = h + 'px';
+      window.__cardReady = true;
+    });
+  </script>
+</body>
+</html>
