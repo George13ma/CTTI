@@ -1427,46 +1427,13 @@ async function generateCardBlob(type) {
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
-/* ── Share: mobile-only, native share sheet with card image + text ── */
-async function shareResult() {
-  const type = window._resultType || 'FDCT';
+/* ── Share: open X compose directly with text + URL ── */
+function shareResult() {
   const text = `快来测测你的交易人格\n${window.location.href}`;
-  const lbl = document.getElementById('share-label');
-  const origLabel = lbl.textContent;
-
-  // Check if native file sharing is supported (mobile browsers)
-  const canShareFiles = navigator.canShare && navigator.share;
-  if (!canShareFiles) {
-    showToast('请在手机浏览器打开并安装 X App');
-    return;
-  }
-
-  lbl.textContent = '生成中...';
-  let blob;
-  try {
-    blob = await generateCardBlob(type);
-  } catch (e) {
-    lbl.textContent = origLabel;
-    showToast('卡片生成失败，请重试');
-    return;
-  }
-
-  const file = new File([blob], `CTTI-${type}.png`, { type: 'image/png' });
-  if (!navigator.canShare({ files: [file] })) {
-    lbl.textContent = origLabel;
-    showToast('当前环境不支持图片分享，请安装 X App');
-    return;
-  }
-
-  try {
-    await navigator.share({ text, files: [file] });
-    lbl.textContent = '已分享 ✓';
-  } catch (e) {
-    // User cancelled or share failed
-    lbl.textContent = origLabel;
-    return;
-  }
-  setTimeout(() => { lbl.textContent = origLabel; }, 2500);
+  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  // On mobile, if X app is installed and set to handle twitter.com links,
+  // the system opens the app; otherwise it falls back to X web compose.
+  window.location.href = intentUrl;
 }
 
 function doCopy(text, onSuccess) {
