@@ -6,7 +6,7 @@
 |------|------|
 | 产品名称 | CTTI — Crypto Trader Type Indicator |
 | 一句话描述 | 加密货币交易人格测试，8题得出16种交易者类型 |
-| 线上地址 | https://cttii.netlify.app |
+| 线上地址 | https://ctti-blush.vercel.app/ |
 | 技术栈 | 纯 HTML/CSS/JS 单文件，无框架 |
 | 作者 X | @George13ma |
 
