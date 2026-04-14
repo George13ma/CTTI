@@ -564,7 +564,7 @@
       </button>
       <div class="qz-counter">
         <span class="qz-num" id="q-cur">1</span>
-        <span class="qz-denom">/ 8</span>
+        <span class="qz-denom">/ 24</span>
       </div>
       <div class="qz-pct-badge"><span id="q-pct">0</span>% 完成</div>
     </div>
@@ -633,43 +633,110 @@
 <script>
 /* ── Data ── */
 const QS = [
+  /* ── 维度1：交易频率 F（闪电出击）vs S（潜伏等待）── */
   {
     q: "你一周大概开几单？",
     opts: [
-      { l:"A", t:"10单以上",               dim:1, v:"F" },
-      { l:"B", t:"3–10单",                 dim:1, v:"N" },
-      { l:"C", t:"3单以下",                dim:1, v:"S" }
+      { l:"A", t:"10单以上",        dim:1, v:"F" },
+      { l:"B", t:"3–10单",          dim:1, v:"F" },
+      { l:"C", t:"3单以下",         dim:1, v:"S" }
     ]
   },
   {
     q: "没有持仓的时候你会？",
     opts: [
-      { l:"A", t:"浑身难受，想找机会进场",   dim:1, v:"F" },
-      { l:"B", t:"看看盘，有机会就做",        dim:1, v:"N" },
-      { l:"C", t:"挺好的，等着就行",          dim:1, v:"S" }
+      { l:"A", t:"浑身难受，想找机会进场",  dim:1, v:"F" },
+      { l:"B", t:"看看盘，有机会就做",      dim:1, v:"F" },
+      { l:"C", t:"挺好的，等着就行",        dim:1, v:"S" }
     ]
   },
   {
+    q: "行情横盘震荡，你一般怎么做？",
+    opts: [
+      { l:"A", t:"照样找机会做，震荡也能抓波动",  dim:1, v:"F" },
+      { l:"B", t:"减少频率，等方向明确再进",      dim:1, v:"S" }
+    ]
+  },
+  {
+    q: "你上一次超过一周没开单是什么时候？",
+    opts: [
+      { l:"A", t:"记不清了，停不下来",     dim:1, v:"F" },
+      { l:"B", t:"最近就有，很正常",       dim:1, v:"S" },
+      { l:"C", t:"主动休息过，但不常见",   dim:1, v:"F" }
+    ]
+  },
+  {
+    q: "朋友说某个币要拉了，你会？",
+    opts: [
+      { l:"A", t:"先进去再说，慢了就没了",       dim:1, v:"F" },
+      { l:"B", t:"看看再说，不急这一下",         dim:1, v:"S" },
+      { l:"C", t:"研究一下，觉得有逻辑再进",     dim:1, v:"S" }
+    ]
+  },
+  {
+    q: '你对"踏空"这件事怎么看？',
+    opts: [
+      { l:"A", t:"非常难受，宁可亏也不想踏空",   dim:1, v:"F" },
+      { l:"B", t:"还好，机会多的是",             dim:1, v:"S" }
+    ]
+  },
+
+  /* ── 维度2：仓位管理 A（梭哈重仓）vs D（分批建仓）── */
+  {
     q: "你通常单笔开仓占总资金多少？",
     opts: [
-      { l:"A", t:"50% 以上",               dim:2, v:"A" },
-      { l:"B", t:"20%–50%",               dim:2, v:"D" },
-      { l:"C", t:"20% 以下",               dim:2, v:"D" }
+      { l:"A", t:"50% 以上",    dim:2, v:"A" },
+      { l:"B", t:"20%–50%",    dim:2, v:"D" },
+      { l:"C", t:"20% 以下",   dim:2, v:"D" }
     ]
   },
   {
     q: "看到一个很有把握的机会，你会？",
     opts: [
-      { l:"A", t:"直接重仓干",              dim:2, v:"A" },
-      { l:"B", t:"先开一部分，对了再加",     dim:2, v:"D" }
+      { l:"A", t:"直接重仓干",             dim:2, v:"A" },
+      { l:"B", t:"先开一部分，对了再加",   dim:2, v:"D" }
     ]
   },
   {
+    q: "你同时最多会持有几个仓位？",
+    opts: [
+      { l:"A", t:"1个，专注一个打",          dim:2, v:"A" },
+      { l:"B", t:"2–3个，分散一点",          dim:2, v:"D" },
+      { l:"C", t:"4个以上，多点机会",        dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "账户亏了30%，你会怎么处理剩余资金？",
+    opts: [
+      { l:"A", t:"梭哈一把，争取一次扳回来",    dim:2, v:"A" },
+      { l:"B", t:"小仓位慢慢做，先稳住",        dim:2, v:"D" },
+      { l:"C", t:"暂停操作，冷静几天",          dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "你加仓的逻辑通常是？",
+    opts: [
+      { l:"A", t:"看对了就加，越涨越加",        dim:2, v:"A" },
+      { l:"B", t:"跌了摊低成本",               dim:2, v:"A" },
+      { l:"C", t:"很少加仓，开仓就是最终仓位",  dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "如果只剩最后一笔资金，你会？",
+    opts: [
+      { l:"A", t:"全押一个高把握的机会",         dim:2, v:"A" },
+      { l:"B", t:"分成几份，慢慢做回来",         dim:2, v:"D" },
+      { l:"C", t:"先不动，等状态好了再说",       dim:2, v:"D" }
+    ]
+  },
+
+  /* ── 维度3：止损习惯 C（铁血止损）vs H（死扛到底）── */
+  {
     q: "开仓前你会设止损吗？",
     opts: [
-      { l:"A", t:"必设，打到就走",           dim:3, v:"C" },
-      { l:"B", t:"设了但经常手动取消",        dim:3, v:"H" },
-      { l:"C", t:"不设，看情况",             dim:3, v:"H" }
+      { l:"A", t:"必设，打到就走",        dim:3, v:"C" },
+      { l:"B", t:"设了但经常手动取消",    dim:3, v:"H" },
+      { l:"C", t:"不设，看情况",          dim:3, v:"H" }
     ]
   },
   {
@@ -681,18 +748,84 @@ const QS = [
     ]
   },
   {
+    q: "你扛过最久的一笔亏损单多久？",
+    opts: [
+      { l:"A", t:"超过一个月",          dim:3, v:"H" },
+      { l:"B", t:"一周以内就止损了",    dim:3, v:"C" },
+      { l:"C", t:"几天，撑不住就走",    dim:3, v:"C" }
+    ]
+  },
+  {
+    q: "止损打了，你的第一反应是？",
+    opts: [
+      { l:"A", t:"果断，该走就走，下一个",         dim:3, v:"C" },
+      { l:"B", t:"心疼，总觉得再扛一下就回来了",  dim:3, v:"H" },
+      { l:"C", t:"怀疑自己设错了止损位",          dim:3, v:"H" }
+    ]
+  },
+  {
+    q: '你相信"只要不止损就没有亏损"这句话吗？',
+    opts: [
+      { l:"A", t:"相信，浮亏不是真亏",        dim:3, v:"H" },
+      { l:"B", t:"不信，浮亏就是亏",          dim:3, v:"C" },
+      { l:"C", t:"有时候会这样安慰自己",      dim:3, v:"H" }
+    ]
+  },
+  {
+    q: "行情反向运动，你通常会在什么时候离场？",
+    opts: [
+      { l:"A", t:"提前设好止损，自动执行",              dim:3, v:"C" },
+      { l:"B", t:"亏到心理承受极限才平仓",              dim:3, v:"H" },
+      { l:"C", t:"等反弹到成本价或者少亏一点再走",      dim:3, v:"H" }
+    ]
+  },
+
+  /* ── 维度4：决策依据 T（图表驱动）vs I（直觉驱动）── */
+  {
     q: "你开单主要依据什么？",
     opts: [
-      { l:"A", t:"K线、均线、指标",           dim:4, v:"T" },
-      { l:"B", t:"盘感、消息、感觉对了",       dim:4, v:"I" },
-      { l:"C", t:"两者结合",                 dim:4, v:"N" }
+      { l:"A", t:"K线、均线、指标",       dim:4, v:"T" },
+      { l:"B", t:"盘感、消息、感觉对了",  dim:4, v:"I" },
+      { l:"C", t:"两者结合",             dim:4, v:"T" }
     ]
   },
   {
     q: "图表显示该卖，但直觉觉得还能涨，你会？",
     opts: [
-      { l:"A", t:"听图表，卖",              dim:4, v:"T" },
-      { l:"B", t:"听直觉，拿着",            dim:4, v:"I" }
+      { l:"A", t:"听图表，卖",    dim:4, v:"T" },
+      { l:"B", t:"听直觉，拿着",  dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "你复盘的时候主要看什么？",
+    opts: [
+      { l:"A", t:"K线走势、入场点位对不对",       dim:4, v:"T" },
+      { l:"B", t:"当时的感觉和判断对不对",        dim:4, v:"I" },
+      { l:"C", t:"很少复盘",                     dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "一个你完全没研究过的币突然大涨，你会？",
+    opts: [
+      { l:"A", t:"先看图，有结构再考虑进",           dim:4, v:"T" },
+      { l:"B", t:"感觉势头对就进，研究来不及",       dim:4, v:"I" },
+      { l:"C", t:"不进，不熟的不碰",                 dim:4, v:"T" }
+    ]
+  },
+  {
+    q: "你最信任哪种开单理由？",
+    opts: [
+      { l:"A", t:"有明确的支撑压力位和技术信号",     dim:4, v:"T" },
+      { l:"B", t:"盯盘久了，感觉这波要动",           dim:4, v:"I" },
+      { l:"C", t:"别人推荐+自己感觉对",              dim:4, v:"I" }
+    ]
+  },
+  {
+    q: "连续亏了三单，你会怎么调整？",
+    opts: [
+      { l:"A", t:"重新看图，找哪里判断出了问题",     dim:4, v:"T" },
+      { l:"B", t:"状态不对，先停一下找感觉",        dim:4, v:"I" },
+      { l:"C", t:"换个币种试试",                   dim:4, v:"I" }
     ]
   }
 ];
@@ -933,17 +1066,22 @@ function goBack() {
 
 /* ── Scoring ── */
 function calcResult() {
-  const d1 = score(ans[0], ans[1], 'F', 'S', 'F');
-  const d2 = score(ans[2], ans[3], 'A', 'D', 'D');
-  const d3 = score(ans[4], ans[5], 'C', 'H', 'H');
-  const d4 = score(ans[6], ans[7], 'T', 'I', 'T');
+  const dimOf = q => q.opts[0].dim;
+  const dim1 = QS.reduce((acc, q, i) => dimOf(q) === 1 ? [...acc, ans[i]] : acc, []);
+  const dim2 = QS.reduce((acc, q, i) => dimOf(q) === 2 ? [...acc, ans[i]] : acc, []);
+  const dim3 = QS.reduce((acc, q, i) => dimOf(q) === 3 ? [...acc, ans[i]] : acc, []);
+  const dim4 = QS.reduce((acc, q, i) => dimOf(q) === 4 ? [...acc, ans[i]] : acc, []);
+  const d1 = majority(dim1, 'F', 'S');
+  const d2 = majority(dim2, 'A', 'D');
+  const d3 = majority(dim3, 'C', 'H');
+  const d4 = majority(dim4, 'T', 'I');
   showResult(d1 + d2 + d3 + d4);
 }
 
-function score(a, b, posV, negV, tie) {
-  let pos = 0, neg = 0;
-  [a, b].forEach(v => { if (v === posV) pos++; else if (v === negV) neg++; });
-  return pos > neg ? posV : neg > pos ? negV : tie;
+function majority(votes, posV, negV) {
+  const pos = votes.filter(v => v === posV).length;
+  const neg = votes.filter(v => v === negV).length;
+  return pos >= neg ? posV : negV;
 }
 
 /* ── Tier helper ── */
