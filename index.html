@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0e11">
   <title>CTTI — Crypto Trader Type Indicator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -511,6 +513,119 @@
 
     /* ── Shared ── */
     @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Share card (hidden offscreen, rendered to PNG via html2canvas) ── */
+    #sc-root {
+      position: fixed; top: 0; left: -9999px;
+      width: 360px;
+      font-family: 'Space Mono', monospace;
+      z-index: -1; pointer-events: none;
+    }
+    .sc-card {
+      width: 360px;
+      background: #161b1f;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .sc-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--sc-accent,#fbbf24) 0%, #fff 50%, var(--sc-accent,#fbbf24) 100%);
+    }
+    .sc-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 20px 12px;
+    }
+    .sc-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 3px;
+      color: rgba(255,255,255,0.2);
+    }
+    .sc-grade-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px; letter-spacing: 2px;
+      color: var(--sc-accent,#fbbf24);
+      border: 1px solid var(--sc-accent-border,rgba(251,191,36,0.4));
+      padding: 3px 10px; border-radius: 4px;
+    }
+    .sc-image-wrap {
+      margin: 0 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: #1e262b;
+      aspect-ratio: 1 / 1;
+    }
+    .sc-image-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center center;
+      display: block;
+    }
+    .sc-image-wrap::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 50px;
+      background: linear-gradient(to top, rgba(22,27,31,1), rgba(22,27,31,0));
+    }
+    .sc-info { padding: 16px 20px 10px; }
+    .sc-type-row {
+      display: flex; align-items: baseline; gap: 10px;
+      margin-bottom: 4px;
+    }
+    .sc-code {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px; letter-spacing: 4px;
+      color: #fff; line-height: 1;
+    }
+    .sc-sub-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px; letter-spacing: 2px;
+      color: var(--sc-accent,#4ade80);
+    }
+    .sc-potential {
+      font-size: 10px; letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .sc-potential span { color: rgba(255,255,255,0.5); }
+    .sc-divider {
+      height: 1px; background: rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+    .sc-meta-row {
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .sc-meta-label {
+      font-size: 9px; letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sc-meta-value {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-weight: 900; font-size: 18px;
+      color: var(--sc-accent,#fbbf24);
+    }
+    .sc-meta-value-right {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+    }
+    .sc-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 20px 16px;
+    }
+    .sc-stars { display: flex; gap: 3px; }
+    .sc-star { font-size: 16px; }
+    .sc-star.on { color: var(--sc-accent,#fbbf24); }
+    .sc-star.off { color: rgba(255,255,255,0.15); }
+    .sc-domain {
+      font-size: 10px; letter-spacing: 1px;
+      color: rgba(255,255,255,0.2);
+    }
   </style>
 </head>
 <body>
@@ -528,6 +643,41 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Hidden share card (rendered offscreen for html2canvas) -->
+<div id="sc-root">
+  <div class="sc-card" id="sc-card">
+    <div class="sc-header">
+      <div class="sc-brand">CTTI</div>
+      <div class="sc-grade-badge" id="sc-grade-badge">A · 潜力</div>
+    </div>
+    <div class="sc-image-wrap">
+      <img id="sc-img" src="" alt="" crossorigin="anonymous">
+    </div>
+    <div class="sc-info">
+      <div class="sc-type-row">
+        <div class="sc-code" id="sc-code">FACT</div>
+        <div class="sc-sub-grade" id="sc-sub-grade">A-</div>
+      </div>
+      <div class="sc-potential">POTENTIAL · <span id="sc-potential-span">潜力</span></div>
+      <div class="sc-divider"></div>
+      <div class="sc-meta-row">
+        <div>
+          <div class="sc-meta-label">NAME</div>
+          <div class="sc-meta-value" id="sc-name">闪电狙击手</div>
+        </div>
+        <div>
+          <div class="sc-meta-label" style="text-align:right">TYPE</div>
+          <div class="sc-meta-value-right" id="sc-type-desc">闪电·快手</div>
+        </div>
+      </div>
+    </div>
+    <div class="sc-footer">
+      <div class="sc-stars" id="sc-stars"></div>
+      <div class="sc-domain">ctti-blush.vercel.app</div>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════
      LANDING
@@ -1216,26 +1366,107 @@ function scramble(el, final, dur) {
   }, iv);
 }
 
-/* ── Share: always copy + show "已复制" ── */
-function shareResult() {
-  const type = window._resultType || '';
-  const name = window._resultName || '';
-  const text = `我的合约交易人格是 ${type}「${name}」\n— CTTI Crypto Trader Type Indicator`;
-  const url  = window.location.href;
-  const full = text + '\n' + url;
+/* ── Share card data (TYPE description + stars per personality) ── */
+const SHARE_CARDS = {
+  FACT:{type:'闪电·快手',stars:4}, FACI:{type:'闪电·直觉',stars:4},
+  FAHT:{type:'梭哈·技术',stars:3}, FAHI:{type:'梭哈·直觉',stars:3},
+  FDCT:{type:'节奏·系统',stars:5}, FDCI:{type:'灵动·直觉',stars:4},
+  FDHT:{type:'分仓·技术',stars:4}, FDHI:{type:'分仓·直觉',stars:3},
+  SACT:{type:'冷血·精准',stars:5}, SACI:{type:'潜伏·豹子',stars:4},
+  SAHT:{type:'钻石·长线',stars:3}, SAHI:{type:'佛系·躺平',stars:3},
+  SDCT:{type:'理性·建筑',stars:5}, SDCI:{type:'稳健·老手',stars:5},
+  SDHT:{type:'图表·坚守',stars:4}, SDHI:{type:'冬眠·淡定',stars:3}
+};
+const SHARE_TIERS = {
+  5:{rank:'S+',short:'王牌',letter:'S',color:'#4ade80',border:'rgba(74,222,128,0.4)'},
+  4:{rank:'A-',short:'潜力',letter:'A',color:'#fbbf24',border:'rgba(251,191,36,0.4)'},
+  3:{rank:'B+',short:'幸存',letter:'B',color:'#ef4444',border:'rgba(239,68,68,0.4)'}
+};
 
-  // Always copy to clipboard and show feedback
-  doCopy(full, () => {
-    const lbl = document.getElementById('share-label');
-    lbl.textContent = '已复制 ✓';
-    showToast('链接已复制到剪贴板 ✓');
-    setTimeout(() => { lbl.textContent = '分享结果'; }, 2500);
-  });
-
-  // Also try native share on mobile (fire-and-forget)
-  if (navigator.share) {
-    navigator.share({ title: 'CTTI — Crypto Trader Type Indicator', text, url }).catch(() => {});
+/* Populate the hidden share card with a given type */
+function populateShareCard(type) {
+  const name = (RESULTS[type] || RESULTS.FDCT).name;
+  const sc = SHARE_CARDS[type] || SHARE_CARDS.FDCT;
+  const tier = SHARE_TIERS[sc.stars];
+  const card = document.getElementById('sc-card');
+  card.style.setProperty('--sc-accent', tier.color);
+  card.style.setProperty('--sc-accent-border', tier.border);
+  document.getElementById('sc-code').textContent = type;
+  document.getElementById('sc-img').src = `images/${type}.png`;
+  document.getElementById('sc-grade-badge').textContent = `${tier.letter} · ${tier.short}`;
+  document.getElementById('sc-sub-grade').textContent = tier.rank;
+  document.getElementById('sc-potential-span').textContent = tier.short;
+  document.getElementById('sc-name').textContent = name;
+  document.getElementById('sc-type-desc').textContent = sc.type;
+  let starHTML = '';
+  for (let i = 0; i < 5; i++) {
+    starHTML += `<span class="sc-star ${i < sc.stars ? 'on' : 'off'}">★</span>`;
   }
+  document.getElementById('sc-stars').innerHTML = starHTML;
+}
+
+/* Render share card to a PNG blob */
+async function generateCardBlob(type) {
+  populateShareCard(type);
+  // wait for image load
+  const img = document.getElementById('sc-img');
+  await new Promise(r => {
+    if (img.complete && img.naturalWidth) r();
+    else { img.onload = r; img.onerror = r; }
+  });
+  // wait for fonts
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e) {}
+  }
+  const canvas = await html2canvas(document.getElementById('sc-card'), {
+    backgroundColor: null,
+    scale: 2,
+    logging: false,
+    useCORS: true
+  });
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+/* ── Share: mobile-only, native share sheet with card image + text ── */
+async function shareResult() {
+  const type = window._resultType || 'FDCT';
+  const text = `快来测测你的交易人格\n${window.location.href}`;
+  const lbl = document.getElementById('share-label');
+  const origLabel = lbl.textContent;
+
+  // Check if native file sharing is supported (mobile browsers)
+  const canShareFiles = navigator.canShare && navigator.share;
+  if (!canShareFiles) {
+    showToast('请在手机浏览器打开并安装 X App');
+    return;
+  }
+
+  lbl.textContent = '生成中...';
+  let blob;
+  try {
+    blob = await generateCardBlob(type);
+  } catch (e) {
+    lbl.textContent = origLabel;
+    showToast('卡片生成失败，请重试');
+    return;
+  }
+
+  const file = new File([blob], `CTTI-${type}.png`, { type: 'image/png' });
+  if (!navigator.canShare({ files: [file] })) {
+    lbl.textContent = origLabel;
+    showToast('当前环境不支持图片分享，请安装 X App');
+    return;
+  }
+
+  try {
+    await navigator.share({ text, files: [file] });
+    lbl.textContent = '已分享 ✓';
+  } catch (e) {
+    // User cancelled or share failed
+    lbl.textContent = origLabel;
+    return;
+  }
+  setTimeout(() => { lbl.textContent = origLabel; }, 2500);
 }
 
 function doCopy(text, onSuccess) {
