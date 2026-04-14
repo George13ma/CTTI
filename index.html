@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0e11">
+  <title>CTTI — Crypto Trader Type Indicator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0b0e11;
+      --surface:  rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border:   rgba(255,255,255,0.1);
+      --border-h: rgba(255,255,255,0.22);
+      --green:    #00c853;
+      --green-l:  #69f0ae;
+      --gold:     #f59e0b;
+      --gold-l:   #fcd34d;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --dim:      #475569;
+      --r:        16px;
+    }
+
+    html, body {
+      height: 100%; height: 100svh;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── App frame: constrain width, center on desktop ── */
+    .app {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 480px;
+      height: 100%; height: 100svh;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    /* ── Background Art ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(139,92,246,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,92,246,0.045) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+    }
+    .bg-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(90px); animation: drift 22s ease-in-out infinite;
+    }
+    .bg-orb { display: none; }
+    @keyframes drift {
+      0%,100%{ transform: translate(0,0) scale(1); }
+      33%    { transform: translate(28px,-18px) scale(1.04); }
+      66%    { transform: translate(-18px,28px) scale(.96); }
+    }
+
+    /* ── Pages: fill the app frame, stacked ── */
+    .page {
+      position: absolute; inset: 0;
+      display: none; flex-direction: column;
+      overflow: hidden;
+    }
+    .page.active { display: flex; }
+
+    /* ──────────────────────────────────────────
+       LANDING
+    ────────────────────────────────────────── */
+    #pg-land {
+      align-items: center; justify-content: center;
+      padding: 32px 28px 48px; text-align: center;
+      overflow-y: auto;
+    }
+    .land-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp .6s ease both;
+    }
+    .land-badge::before {
+      content:''; width:6px; height:6px;
+      background: var(--text); border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.8)} }
+
+    .land-title {
+      font-size: clamp(60px,17vw,92px);
+      font-weight: 900; letter-spacing: -.02em; line-height: 1;
+      background: linear-gradient(160deg, #fff 0%, #9aa3ae 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      animation: fadeUp .6s ease .08s both;
+    }
+    .land-sub {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 22px;
+      animation: fadeUp .6s ease .16s both;
+    }
+    .land-tagline {
+      font-size: clamp(17px,4.5vw,21px); color: var(--muted);
+      font-weight: 400; line-height: 1.55; max-width: 300px;
+      margin: 0 auto 44px;
+      animation: fadeUp .6s ease .24s both;
+    }
+    .land-tagline strong { color: var(--text); font-weight: 700; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: #fff;
+      color: #000; font-size: 17px; font-weight: 700;
+      padding: 16px 40px; border-radius: 100px; border: none;
+      cursor: pointer; letter-spacing: .02em;
+      box-shadow: none;
+      transition: transform .2s, background .2s;
+      animation: fadeUp .6s ease .32s both;
+    }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); background: #e2e8f0; }
+    .btn-primary:active { transform: scale(.97); }
+
+    .land-stats {
+      display: flex; gap: 32px; justify-content: center;
+      margin-top: 52px;
+      animation: fadeUp .6s ease .42s both;
+    }
+    .stat { text-align: center; }
+    .stat-n {
+      font-size: 22px; font-weight: 800;
+      color: var(--text);
+    }
+    .stat-l { font-size: 11px; color: var(--dim); margin-top: 3px; }
+
+    /* ──────────────────────────────────────────
+       QUIZ
+    ────────────────────────────────────────── */
+    #pg-quiz { padding: 0; }
+
+    .qz-head {
+      padding: env(safe-area-inset-top, 48px) 20px 16px;
+      padding-top: max(env(safe-area-inset-top, 0px), 52px);
+      position: sticky; top: 0; z-index: 10;
+      background: linear-gradient(to bottom, var(--bg) 80%, transparent);
+    }
+
+    /* ── Top bar: back + counter + pct ── */
+    .qz-topbar {
+      display: flex; align-items: center;
+      gap: 12px; margin-bottom: 14px;
+    }
+
+    /* Back button */
+    .qz-back {
+      width: 38px; height: 38px; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      background: rgba(255,255,255,.05);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted);
+      transition: border-color .18s, color .18s, background .18s;
+    }
+    .qz-back:hover  { border-color: var(--border-h); color: var(--text); background: rgba(255,255,255,.07); }
+    .qz-back:active { transform: scale(.93); }
+    .qz-back.hidden { visibility: hidden; pointer-events: none; }
+
+    /* Step counter – center, grows to fill */
+    .qz-counter {
+      flex: 1;
+      display: flex; align-items: baseline; gap: 4px;
+    }
+    .qz-num {
+      font-size: 28px; font-weight: 900; line-height: 1;
+      color: var(--text);
+    }
+    .qz-denom {
+      font-size: 15px; font-weight: 600; color: var(--dim);
+    }
+
+    /* Pct badge */
+    .qz-pct-badge {
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 100px; padding: 4px 11px;
+      white-space: nowrap;
+    }
+
+    /* Dots */
+    .qz-dots {
+      display: flex; gap: 5px; margin-bottom: 10px;
+    }
+    .qz-dot {
+      flex: 1; height: 3px; border-radius: 100px;
+      background: rgba(255,255,255,.08);
+      transition: background .35s;
+    }
+    .qz-dot.done   { background: rgba(255,255,255,.3); }
+    .qz-dot.active { background: #fff; box-shadow: none; }
+
+    /* Progress bar (thin, below dots) */
+    .qz-track { height: 2px; background: rgba(255,255,255,.06); border-radius: 100px; overflow: hidden; }
+    .qz-fill {
+      height: 100%; border-radius: 100px;
+      background: #fff;
+      box-shadow: none;
+      transition: width .45s cubic-bezier(.4,0,.2,1);
+    }
+
+    .qz-body { flex: 1; padding: 20px 24px 40px; overflow-y: auto; }
+
+    .qz-q {
+      font-size: clamp(19px,5.2vw,25px); font-weight: 700;
+      line-height: 1.45; margin-bottom: 26px; color: var(--text);
+    }
+    .qz-opts { display: flex; flex-direction: column; gap: 11px; }
+
+    .opt {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r); padding: 15px 17px;
+      cursor: pointer; user-select: none;
+      transition: background .18s, border-color .18s, box-shadow .18s;
+    }
+    .opt:hover { background: var(--surface2); border-color: var(--border-h); }
+    .opt:active { transform: scale(.98); }
+
+    /* ★ Selected: double-ring glow — NO transform to avoid GPU layer promotion ★
+       transform: scale() creates an independent compositor layer per element;
+       when the slide is replaced, that layer lingers in GPU memory for 1-2 frames
+       and appears as a ghost at the old option's position on the next question. */
+    .opt.picked {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.55);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.2);
+    }
+
+    .opt-lbl {
+      width: 33px; height: 33px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,.14);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--muted);
+      flex-shrink: 0; transition: all .2s;
+    }
+    .opt.picked .opt-lbl {
+      background: #fff;
+      border-color: transparent; color: #000;
+    }
+    .opt-txt { font-size: 15px; line-height: 1.5; color: var(--text); }
+    .opt.picked .opt-txt { color: #fff; font-weight: 500; }
+
+    .qz-slide { animation: slideIn .28s ease both; }
+    @keyframes slideIn { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+
+    /* ──────────────────────────────────────────
+       RESULT
+    ────────────────────────────────────────── */
+    #pg-res {
+      padding: 52px 24px 52px;
+      padding-top: max(env(safe-area-inset-top, 0px), 52px);
+      align-items: center; text-align: center;
+      overflow-y: auto;
+    }
+
+    /* accent color is set per-result via JS: document.getElementById('pg-res').style.setProperty('--accent', color) */
+    #pg-res { --accent: #00c853; }
+
+    .res-eye {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 16px;
+      animation: fadeUp .5s ease both;
+    }
+    .res-hero {
+      width: calc(100% - 24px); max-width: 370px;
+      aspect-ratio: 1 / 1;
+      border: none;
+      border-radius: 16px;
+      background: transparent;
+      margin-bottom: 20px;
+      animation: fadeUp .5s ease .1s both;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .res-hero img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .res-code {
+      font-size: clamp(56px,16vw,84px); font-weight: 900;
+      letter-spacing: .1em; line-height: 1;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      animation: codeReveal .85s cubic-bezier(.4,0,.2,1) .15s both;
+    }
+    @keyframes codeReveal {
+      from { opacity:0; transform:scale(.65) translateY(16px); filter:blur(12px); }
+      to   { opacity:1; transform:scale(1) translateY(0);      filter:blur(0); }
+    }
+    .res-name {
+      font-size: clamp(18px,5.2vw,24px); font-weight: 800;
+      color: var(--gold-l);
+      animation: fadeUp .5s ease .5s both;
+    }
+    .res-desc-solo {
+      font-size: 14px; line-height: 1.75; color: var(--muted);
+      width: 100%; max-width: 370px; margin-bottom: 20px;
+      animation: fadeUp .5s ease .54s both;
+    }
+
+    .res-card {
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 20px; padding: 20px 22px;
+      width: 100%; max-width: 370px; margin-bottom: 16px;
+      animation: fadeUp .5s ease .6s both;
+    }
+    .res-desc {
+      font-size: 15px; line-height: 1.75;
+      color: var(--muted); margin-bottom: 20px;
+    }
+    .res-stars-label {
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 10px;
+    }
+    .res-stars { display: flex; justify-content: center; gap: 5px; }
+    .star {
+      font-size: 24px; line-height: 1;
+      animation: starPop .35s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .star.lit  { filter: drop-shadow(0 0 7px var(--gold)); color: var(--gold); }
+    .star.dim  { color: rgba(255,255,255,.15); }
+    @keyframes starPop {
+      from { transform: scale(0) rotate(-35deg); opacity:0; }
+      to   { transform: scale(1) rotate(0);      opacity:1; }
+    }
+
+    .res-grid {
+      width: 100%; max-width: 370px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 12px; overflow: hidden;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .res-cell {
+      display: flex; align-items: center;
+      padding: 16px; gap: 12px;
+    }
+    .res-cell + .res-cell {
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .cell-letter { width: 30px; flex-shrink: 0; font-size: 18px; font-weight: 900; line-height: 1; text-align: center; }
+    .cell-info   { flex: 1; min-width: 0; text-align: left; }
+    .cell-name   { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .cell-desc   { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.4; }
+    .cell-score  { width: 40px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--muted); text-align: right; }
+
+    /* ── Tier (rank badge) ── */
+    .res-tier {
+      display: flex; align-items: center; gap: 16px;
+      width: 100%; max-width: 370px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px; padding: 16px;
+      margin-bottom: 16px;
+      animation: fadeUp .5s ease .56s both;
+    }
+    .res-tier-rank {
+      font-size: 44px; font-weight: 900; line-height: 1;
+      letter-spacing: -.02em; color: var(--accent);
+      flex-shrink: 0;
+    }
+    .res-tier-label {
+      font-size: 13px; font-weight: 700;
+      color: var(--accent); margin-bottom: 4px;
+    }
+    .res-tier-sub { font-size: 12px; color: var(--muted); }
+
+    /* ── Interpretation card ── */
+    .res-interp {
+      width: 100%; max-width: 370px;
+      background: #1a1f26;
+      border-radius: 12px; padding: 16px;
+      margin-bottom: 16px; flex-shrink: 0;
+      animation: fadeUp .5s ease .72s both;
+    }
+    .res-interp-title {
+      font-size: 14px; color: rgba(255,255,255,.5);
+      margin-bottom: 10px;
+    }
+    .res-interp-body {
+      font-size: 15px; line-height: 1.9;
+      color: rgba(255,255,255,.9); text-align: left;
+    }
+
+    /* ── Insight card (single card, 3 sections) ── */
+    .res-insights {
+      width: 100%; max-width: 370px; margin-bottom: 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px; overflow: hidden;
+      flex-shrink: 0;
+      animation: fadeUp .5s ease .76s both;
+    }
+    .insight-card {
+      padding: 16px;
+      text-align: left;
+    }
+    .insight-card + .insight-card {
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .insight-tag {
+      font-size: 14px; font-weight: 700;
+      letter-spacing: .03em;
+      margin-bottom: 6px; text-align: left;
+    }
+    .insight-tag.adv    { color: #00c853; }
+    .insight-tag.trap   { color: #ff6b6b; }
+    .insight-tag.advice { color: var(--muted); }
+    .insight-text { font-size: 14px; line-height: 1.65; color: var(--text); }
+
+    /* ── Disclaimer ── */
+    .res-disclaimer {
+      width: 100%; max-width: 370px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 12px; line-height: 1.7;
+      color: rgba(255,255,255,.4); text-align: center;
+      animation: fadeUp .5s ease .92s both;
+    }
+
+    .res-disclaimer-author {
+      display: inline-block; margin-top: 10px;
+      font-size: 12px; color: rgba(255,255,255,.4);
+      text-decoration: underline; text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .res-disclaimer-author:hover { color: rgba(255,255,255,.7); }
+
+    /* ── Stats counter ── */
+    .res-stats {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--dim);
+      width: 100%; max-width: 370px;
+      margin-bottom: 16px;
+      animation: fadeUp .5s ease .9s both;
+    }
+    .res-stats em { color: var(--muted); font-style: normal; font-weight: 600; }
+    .res-stats-pct { color: var(--muted); font-weight: 600; font-size: 12px; }
+
+    .res-actions {
+      display: flex; flex-direction: column; gap: 11px;
+      width: 100%; max-width: 370px;
+      animation: fadeUp .5s ease 1.0s both;
+    }
+    .btn-share {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      background: var(--green);
+      color: #000; font-size: 16px; font-weight: 700;
+      padding: 16px; border-radius: 100px; border: none; cursor: pointer;
+      box-shadow: 0 0 32px rgba(0,200,83,.3);
+      transition: all .2s;
+    }
+    .btn-share:active { transform: scale(.97); }
+    .btn-retry {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: transparent; color: var(--muted);
+      font-size: 15px; padding: 14px; border-radius: 100px;
+      border: 1.5px solid rgba(255,255,255,.1); cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-retry:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 36px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(18,25,45,.95);
+      border: 1px solid rgba(0,200,83,.3);
+      border-radius: 100px; padding: 12px 26px;
+      font-size: 14px; color: var(--text);
+      backdrop-filter: blur(24px);
+      z-index: 200; white-space: nowrap;
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+    }
+    .toast.on { transform: translateX(-50%) translateY(0); }
+
+    /* ── Shared ── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg">
+  <div class="bg-grid"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+</div>
+
+<!-- App frame (constrains width, centers on desktop) -->
+<div class="app">
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════
+     LANDING
+════════════════════════════════════════════ -->
+<div class="page active" id="pg-land">
+  <div class="land-badge">Personality Test · 8 Questions</div>
+  <div class="land-title">CTTI</div>
+  <div class="land-sub">Crypto Trader Type Indicator</div>
+  <p class="land-tagline">测测你是哪种<strong>合约交易者</strong></p>
+  <button class="btn-primary" onclick="startQuiz()">
+    开始测试
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </button>
+  <div class="land-stats">
+    <div class="stat"><div class="stat-n">16</div><div class="stat-l">交易人格</div></div>
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">道题目</div></div>
+    <div class="stat"><div class="stat-n">2 min</div><div class="stat-l">快速完成</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUIZ
+════════════════════════════════════════════ -->
+<div class="page" id="pg-quiz">
+  <div class="qz-head">
+    <!-- Top bar -->
+    <div class="qz-topbar">
+      <button class="qz-back hidden" id="qz-back" onclick="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div class="qz-counter">
+        <span class="qz-num" id="q-cur">1</span>
+        <span class="qz-denom">/ 8</span>
+      </div>
+      <div class="qz-pct-badge"><span id="q-pct">0</span>% 完成</div>
+    </div>
+    <!-- Dots -->
+    <div class="qz-dots" id="qz-dots"></div>
+    <!-- Thin progress bar -->
+    <div class="qz-track">
+      <div class="qz-fill" id="qz-fill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="qz-body" id="qz-body"></div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     RESULT
+════════════════════════════════════════════ -->
+<div class="page" id="pg-res">
+  <div class="res-eye" id="res-eye">你的合约交易人格是</div>
+  <div class="res-hero" id="r-avatar"></div>
+  <div class="res-code" id="r-code">FDCT</div>
+  <div class="res-name" id="r-name">节奏大师</div>
+  <div class="res-desc-solo" id="r-desc">系统已成型，优化细节就能起飞</div>
+
+  <div class="res-tier" id="r-tier"></div>
+
+  <div class="res-interp">
+    <div class="res-interp-title">该人格的简单解读</div>
+    <div class="res-interp-body" id="r-interp">文案待补充</div>
+  </div>
+
+  <div class="res-grid" id="r-grid"></div>
+
+  <div class="res-card">
+    <div class="res-stars-label">潜力评分</div>
+    <div class="res-stars" id="r-stars"></div>
+  </div>
+
+  <div class="res-insights" id="r-insights"></div>
+
+  <div class="res-disclaimer">
+    <div>本测试仅供娱乐，别拿它当交易指南。你可以笑，但别太当真。</div>
+    <a class="res-disclaimer-author" href="https://x.com/George13ma" target="_blank" rel="noopener">by george13.ma</a>
+  </div>
+
+  <div class="res-stats" id="r-stats"></div>
+
+  <div class="res-actions">
+    <button class="btn-share" id="btn-share" onclick="shareResult()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+      <span id="share-label">分享结果</span>
+    </button>
+    <button class="btn-retry" onclick="restartQuiz()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-4.02"/>
+      </svg>
+      重新测试
+    </button>
+  </div>
+</div>
+
+<script>
+/* ── Data ── */
+const QS = [
+  {
+    q: "你一周大概开几单？",
+    opts: [
+      { l:"A", t:"10单以上",               dim:1, v:"F" },
+      { l:"B", t:"3–10单",                 dim:1, v:"N" },
+      { l:"C", t:"3单以下",                dim:1, v:"S" }
+    ]
+  },
+  {
+    q: "没有持仓的时候你会？",
+    opts: [
+      { l:"A", t:"浑身难受，想找机会进场",   dim:1, v:"F" },
+      { l:"B", t:"看看盘，有机会就做",        dim:1, v:"N" },
+      { l:"C", t:"挺好的，等着就行",          dim:1, v:"S" }
+    ]
+  },
+  {
+    q: "你通常单笔开仓占总资金多少？",
+    opts: [
+      { l:"A", t:"50% 以上",               dim:2, v:"A" },
+      { l:"B", t:"20%–50%",               dim:2, v:"D" },
+      { l:"C", t:"20% 以下",               dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "看到一个很有把握的机会，你会？",
+    opts: [
+      { l:"A", t:"直接重仓干",              dim:2, v:"A" },
+      { l:"B", t:"先开一部分，对了再加",     dim:2, v:"D" }
+    ]
+  },
+  {
+    q: "开仓前你会设止损吗？",
+    opts: [
+      { l:"A", t:"必设，打到就走",           dim:3, v:"C" },
+      { l:"B", t:"设了但经常手动取消",        dim:3, v:"H" },
+      { l:"C", t:"不设，看情况",             dim:3, v:"H" }
+    ]
+  },
+  {
+    q: "单子浮亏 20% 了，你会？",
+    opts: [
+      { l:"A", t:"早就止损了，不可能到这里",  dim:3, v:"C" },
+      { l:"B", t:"再看看，可能会回来",        dim:3, v:"H" },
+      { l:"C", t:"加仓拉低均价",             dim:3, v:"H" }
+    ]
+  },
+  {
+    q: "你开单主要依据什么？",
+    opts: [
+      { l:"A", t:"K线、均线、指标",           dim:4, v:"T" },
+      { l:"B", t:"盘感、消息、感觉对了",       dim:4, v:"I" },
+      { l:"C", t:"两者结合",                 dim:4, v:"N" }
+    ]
+  },
+  {
+    q: "图表显示该卖，但直觉觉得还能涨，你会？",
+    opts: [
+      { l:"A", t:"听图表，卖",              dim:4, v:"T" },
+      { l:"B", t:"听直觉，拿着",            dim:4, v:"I" }
+    ]
+  }
+];
+
+const RESULTS = {
+  FACT: { name:"闪电狙击手",  desc:"职业赌徒既视感，差的只是节奏控制",   stars:4,
+    interp:"文案待补充",
+    advantage:"反应速度顶级，执行力碾压90%的人。你敢打敢撤，不拖泥带水。",
+    trap:"节奏太快容易自我消耗，连续亏损时容易上头加码。",
+    advice:'给自己设"每天最多3单"的规则，把精力留给高胜率机会。',
+    interpretation:"恭喜你，你是币圈的闪电战士——快进快出，绝不拖泥带水。你的反应速度和执行力碾压90%的人，看到机会就敢打，打错了就敢撤。\n\n你不是没输过，但你输得起，因为你知道下一个机会马上就来。你的问题不是能力，是节奏太快容易消耗自己。\n\n如果你能把交易频率降低30%，专注在高胜率机会上，你的收益曲线会稳很多。" },
+  FACI: { name:"直觉闪击者",  desc:"天赋型选手，缺一套过滤系统",         stars:4,
+    interp:"文案待补充",
+    advantage:"盘感敏锐，能捕捉到别人看不到的机会。你的直觉是长期盯盘练出来的真本事。",
+    trap:"直觉有时是情绪伪装的。状态好时无敌，状态差时连环亏。",
+    advice:"每次开单前问自己：这是直觉还是冲动？能回答出逻辑再进场。",
+    interpretation:"恭喜你，你是币圈的直觉猎手——盘感敏锐，能捕捉到别人看不到的机会。你的直觉不是瞎猜，是长期盯盘练出来的真本事。\n\n状态好的时候你能连续吃肉，但状态差的时候也会连环亏。因为直觉有时候是情绪伪装的。\n\n下次开单前问自己一句：这是直觉还是冲动？能回答出逻辑再进场。" },
+  FAHT: { name:"孤注一掷者",  desc:"信念很强，但信念需要装刹车",         stars:3,
+    interp:"文案待补充",
+    advantage:"你有信念感，敢于在看好的机会上重仓，不会被小波动吓跑。",
+    trap:"死扛+梭哈是最危险的组合。一次错误可能吃掉所有利润。",
+    advice:"设一个硬止损——不管多相信这笔单，亏X%必须走。",
+    interpretation:"恭喜你，你是币圈的孤注一掷者——有信念感，敢于在看好的机会上重仓，不会被小波动吓跑。\n\n但说实话，死扛+梭哈是最危险的组合。你可能赚过大钱，也可能一次错误就吃掉所有利润。\n\n给自己设一个硬止损吧——不管多相信这笔单，亏到某个点必须走。先保住本金，才有下次机会。" },
+  FAHI: { name:"极限心跳王",  desc:"坐过山车专业户，经验值拉满了",       stars:3,
+    interp:"文案待补充",
+    advantage:"你是真正的冒险家，敢想敢干，经历过的行情比大多数人都多。",
+    trap:"这套打法波动极大，容易坐过山车。你可能赚过大钱，但很难守住。",
+    advice:"每次出金20%利润到冷钱包，不管多想加仓，那笔钱不动。",
+    interpretation:"恭喜你，你是币圈的极限玩家——敢想敢干，经历过的行情比大多数人都多。你坐过山车的次数，可能比别人开单的次数还多。\n\n你可能赚过大钱，但很难守住。这套打法波动极大，心脏不好的人根本玩不来。\n\n建议每次出金20%利润到冷钱包，不管多想加仓，那笔钱不动。先学会守住，再谈赚更多。" },
+  FDCT: { name:"节奏大师",    desc:"系统已成型，优化细节就能起飞",       stars:5,
+    interp:"文案待补充",
+    advantage:"你是少数能把高频做稳的人。分仓控制风险，止损保护本金，图表给你方向。",
+    trap:"容易过度交易，手续费吃掉利润。有时候不做也是一种做。",
+    advice:"每周统计手续费支出，如果超过盈利的20%，说明频率太高了。",
+    interpretation:"恭喜你，你是币圈的节奏大师——少数能把高频做稳的人。分仓控制风险，止损保护本金，图表给你方向。你的系统已经成型了。\n\n唯一的问题是容易过度交易，手续费吃掉利润。有时候不做也是一种做。\n\n每周统计一下手续费支出，如果超过盈利的20%，说明频率太高了。" },
+  FDCI: { name:"灵动游击手",  desc:"灵活是优势，加点纪律就无敌",         stars:4,
+    interp:"文案待补充",
+    advantage:"灵活、敏捷，能快速适应市场变化。你不会在一棵树上吊死。",
+    trap:"灵活有时意味着没有主见，容易被市场牵着走。",
+    advice:"每天只交易一个方向，开盘前定好今天只做多或只做空。",
+    interpretation:"恭喜你，你是币圈的游击高手——灵活、敏捷，能快速适应市场变化。你不会在一棵树上吊死，打一枪换一个地方。\n\n但灵活有时意味着没有主见，容易被市场牵着走，今天看多明天看空。\n\n试试每天只交易一个方向，开盘前定好今天只做多或只做空，会让你的胜率提升不少。" },
+  FDHT: { name:"技术坚守者",  desc:"技术功底有了，学会认错就完整",       stars:4,
+    interp:"文案待补充",
+    advantage:"你对技术分析有深入研究，愿意为自己的判断买单。",
+    trap:"技术图表是工具，不是信仰。市场不按图表走的时候很多。",
+    advice:"给每笔单设一个图表失效点——跌破/突破某个位置就认错，不恋战。",
+    interpretation:"恭喜你，你是币圈的技术信徒——对技术分析有深入研究，愿意为自己的判断买单。你相信图表会告诉你答案。\n\n但技术图表是工具，不是信仰。市场不按图表走的时候很多，而你的死扛习惯会让亏损放大。\n\n给每笔单设一个图表失效点——跌破或突破某个位置就认错，不恋战。" },
+  FDHI: { name:"直觉漂流者",  desc:"需要把直觉显性化成系统",             stars:3,
+    interp:"文案待补充",
+    advantage:"你内心有一套自己的市场理解，不人云亦云。",
+    trap:"漂流时间长了容易迷失方向。你可能不知道自己在等什么。",
+    advice:"每笔单开仓时写一句话：我为什么开这单？收盘后对比结果。",
+    interpretation:"恭喜你，你是币圈的直觉漂流者——内心有一套自己的市场理解，不人云亦云。你相信自己的感觉，不太依赖指标。\n\n但漂流时间长了容易迷失方向。你可能不知道自己在等什么，开了仓位就随它去了。\n\n每笔单开仓时写一句话：我为什么开这单？收盘后对比结果，把直觉显性化成系统。" },
+  SACT: { name:"冷血猎人",    desc:"最接近稳定盈利的类型",               stars:5,
+    interp:"文案待补充",
+    advantage:"你有极强的耐心，能等到最好的机会再出手。出手即致命。",
+    trap:"等待太久可能错过行情，或者等来的机会并没有想象中好。",
+    advice:"设一个最长等待期——如果X天没有机会，先小仓位试水保持手感。",
+    interpretation:"恭喜你，你是币圈的冷血猎人——有极强的耐心，能等到最好的机会再出手。出手即致命，不出手就静静看着。\n\n你是最接近稳定盈利的类型。但等待太久可能错过行情，或者等来的机会并没有想象中好。\n\n设一个最长等待期——如果太久没有机会，先小仓位试水保持手感，别让自己完全生疏了。" },
+  SACI: { name:"豹子捕猎者",  desc:"打法高端，保持手感是关键",           stars:4,
+    interp:"文案待补充",
+    advantage:"你的直觉经过长时间观察市场打磨，不轻易出手，出手有分量。",
+    trap:"直觉需要校准。长时间不交易，直觉可能钝化。",
+    advice:"保持每天复盘的习惯，即使不交易也要看盘，让直觉保持在线。",
+    interpretation:"恭喜你，你是币圈的豹子猎手——直觉经过长时间观察市场打磨，不轻易出手，出手有分量。你的打法很高端。\n\n但直觉需要校准。长时间不交易，直觉可能钝化，等你再出手时感觉已经不准了。\n\n保持每天复盘的习惯，即使不交易也要看盘，让直觉保持在线。" },
+  SAHT: { name:"钻石手信徒",  desc:"信念要配合风控，不然是固执",         stars:3,
+    interp:"文案待补充",
+    advantage:"你有坚定的信念和长线思维，不被短期波动影响。",
+    trap:"钻石手的前提是方向对。如果方向错了，扛到最后就是归零。",
+    advice:"设一个信仰止损线——亏损超过X%必须重新审视逻辑，而不是继续扛。",
+    interpretation:"恭喜你，你是币圈的钻石手信徒——有坚定的信念和长线思维，不被短期波动影响。别人恐慌的时候你在加仓。\n\n但钻石手的前提是方向对。如果方向错了，扛到最后就是归零。信念是好东西，但要给信念装个刹车。\n\n设一个信仰止损线——亏损超过某个点必须重新审视逻辑，而不是继续扛。" },
+  SAHI: { name:"佛系躺平者",  desc:"心态最大优势，激活主动性更好",       stars:3,
+    interp:"文案待补充",
+    advantage:"你心态好，不焦虑，能承受波动。这个市场最缺的就是你这种淡定。",
+    trap:"淡定和麻木是两回事。你可能已经放弃了主动管理这笔仓位。",
+    advice:"每周花10分钟检查一次仓位，问自己：如果今天空仓，我还会开这个单吗？",
+    interpretation:"恭喜你，你是币圈的佛系玩家——心态好，不焦虑，能承受波动。这个市场最缺的就是你这种淡定。\n\n但淡定和麻木是两回事。你可能已经放弃了主动管理仓位，开了就不管了，涨跌随缘。\n\n每周花10分钟检查一次仓位，问自己：如果今天空仓，我还会开这个单吗？答案是否，就该走了。" },
+  SDCT: { name:"理性建筑师",  desc:"最「正确」的玩家，坚持就是胜利",     stars:5,
+    interp:"文案待补充",
+    advantage:"你是这个市场里最正确的玩家。低频控制成本，分仓控制风险，止损保护本金，图表给你依据。",
+    trap:"太理性可能错过一些需要赌的机会。有时候市场奖励冒险者。",
+    advice:"留10%仓位做机会仓，遇到强信号时允许自己激进一点。",
+    interpretation:'恭喜你，你是币圈的理性建筑师——你是这个市场里最"正确"的玩家。低频控制成本，分仓控制风险，止损保护本金，图表给你依据。\n\n你的系统已经很完整了，坚持下去大概率能稳定盈利。唯一的问题是太理性可能错过一些需要"赌"的机会。\n\n留10%仓位做机会仓，遇到强信号时允许自己激进一点。你已经很稳了，可以适当放开。' },
+  SDCI: { name:"稳健直觉派",  desc:"老司机体质，保持手感就行",           stars:5,
+    interp:"文案待补充",
+    advantage:"你把直觉和风控结合得很好。既尊重自己的判断，又不让判断失误毁掉账户。",
+    trap:"直觉长期不验证会退化。你可能慢慢变成不敢开单。",
+    advice:"每月至少做2-3笔交易，保持对市场的参与感。",
+    interpretation:"恭喜你，你是币圈的稳健老司机——把直觉和风控结合得很好。既尊重自己的判断，又不让判断失误毁掉账户。\n\n你的打法很成熟，属于老司机体质。但直觉长期不验证会退化，你可能慢慢变成不敢开单。\n\n每月至少做2-3笔交易，保持对市场的参与感，别让手感生疏了。" },
+  SDHT: { name:"图表坚守者",  desc:"框架对了，加个时间止损就完美",       stars:4,
+    interp:"文案待补充",
+    advantage:"你对技术分析的信任让你能在波动中保持冷静，不轻易被洗出去。",
+    trap:"图表是概率工具，不是预言。死扛可能等来反转，也可能等来爆仓。",
+    advice:"给扛单设一个时间限制——超过X天没有向有利方向发展，就减仓一半。",
+    interpretation:"恭喜你，你是币圈的图表坚守者——对技术分析的信任让你能在波动中保持冷静，不轻易被洗出去。\n\n你的框架是对的，但图表是概率工具，不是预言。死扛可能等来反转，也可能等来爆仓。\n\n给扛单设一个时间限制——超过某个时间没有向有利方向发展，就减仓一半。时间止损和价格止损一样重要。" },
+  SDHI: { name:"冬眠交易员", desc:"心态稳如老狗，不争不抢也是一种策略",   stars:3,
+    interp:"文案待补充",
+    advantage:"你心态稳如老狗，群里99+消息你可以视而不见。这个市场最怕的就是情绪化，你没有。",
+    trap:"装死和躺平只有一线之隔。你可能已经忘了自己为什么开这个仓位。",
+    advice:"设一个唤醒机制——每周固定时间检查仓位，问自己还要不要持有。",
+    interpretation:"恭喜你，你可能是币圈最稀有的物种——真正的淡定玩家。群里99+消息你可以视而不见，别人恐慌抛售的时候你在睡觉。\n\n你不是不在乎，你是早就看透了：这游戏急也没用。这个市场最怕的就是情绪化，你没有。\n\n唯一的问题是，有时候你躺得太久，忘了自己还有仓位。设一个唤醒机制——每周固定时间检查仓位，问自己还要不要持有。" }
+};
+
+const DIMS = {
+  F: { color:"#a78bfa", name:"闪电出击", desc:"高频进场", interp:"喜欢频繁进出市场，捕捉每一个短线波动机会" },
+  S: { color:"#67e8f9", name:"潜伏等待", desc:"低频精准", interp:"耐心等待高胜率机会，宁可少做也不乱做" },
+  A: { color:"#f87171", name:"梭哈重仓", desc:"单笔大仓", interp:"相信自己的判断，敢于在一笔单上押下重注" },
+  D: { color:"#34d399", name:"分批建仓", desc:"分仓控险", interp:"用分散仓位对抗不确定性，把每次亏损控制在可承受范围" },
+  C: { color:"#67e8f9", name:"铁血止损", desc:"纪律执行", interp:"止损是纪律的底线，执行力是稳定盈利的前提" },
+  H: { color:"#fbbf24", name:"死扛到底", desc:"坚守等待", interp:"相信时间会证明方向，愿意忍受浮亏等待行情兑现" },
+  T: { color:"#818cf8", name:"图表驱动", desc:"技术分析", interp:"K线、均线、支撑压力是核心依据，相信价格会说话" },
+  I: { color:"#f472b6", name:"直觉驱动", desc:"感觉优先", interp:"盘感和经验是决策的核心，相信自己对市场的感知" }
+};
+
+const DIMS_DETAIL = {
+  F: { name:"闪电出击", desc:"高频进场，抓住每个机会" },
+  S: { name:"潜伏等待", desc:"耐心等待高胜率机会，宁可少做也不乱做" },
+  A: { name:"全仓梭哈", desc:"看准就重仓，不留遗憾" },
+  D: { name:"分批建仓", desc:"分仓控险，懂得用仓位管理风险" },
+  C: { name:"铁血止损", desc:"严格止损，错了就认，绝不拖泥带水" },
+  H: { name:"死扛到底", desc:"信仰型选手，扛单是日常" },
+  T: { name:"图表驱动", desc:"技术分析派，数据说话" },
+  I: { name:"直觉驱动", desc:"盘感优先，感觉对了就干" }
+};
+
+/* ── Type distribution (fixed pseudo-realistic %) ── */
+const TYPE_PCT = {
+  FACT:'7.2', FACI:'5.8', FAHT:'4.1', FAHI:'3.6',
+  FDCT:'8.3', FDCI:'6.9', FDHT:'5.4', FDHI:'4.7',
+  SACT:'9.1', SACI:'7.6', SAHT:'4.3', SAHI:'5.2',
+  SDCT:'10.4', SDCI:'8.8', SDHT:'6.3', SDHI:'2.3'
+};
+
+/* ── State ── */
+let cur = 0, ans = [];
+
+/* ── Navigation ── */
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(id);
+  page.classList.add('active');
+  // Reset internal scroll for scrollable pages
+  page.scrollTop = 0;
+  const inner = page.querySelector('.qz-body');
+  if (inner) inner.scrollTop = 0;
+}
+
+/* ── Quiz ── */
+function startQuiz() {
+  cur = 0; ans = [];
+  show('pg-quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q   = QS[cur];
+  const pct = Math.round((cur / QS.length) * 100);
+
+  document.getElementById('q-cur').textContent   = cur + 1;
+  document.getElementById('q-pct').textContent   = pct;
+  document.getElementById('qz-fill').style.width = pct + '%';
+  document.getElementById('qz-back').classList.toggle('hidden', cur === 0);
+
+  // Dots
+  document.getElementById('qz-dots').innerHTML = Array.from({length: QS.length}, (_, i) => {
+    const cls = i < cur ? 'done' : i === cur ? 'active' : '';
+    return `<div class="qz-dot ${cls}"></div>`;
+  }).join('');
+
+  // ── Build every element from scratch with createElement ──
+  // Never reuse or partially update existing nodes; browser gets zero old
+  // element identity to pull a composited layer from.
+
+  // Question text
+  const qEl = document.createElement('div');
+  qEl.className = 'qz-q';
+  qEl.textContent = q.q;
+
+  // Options container — freshly created, exact count for this question
+  const optsEl = document.createElement('div');
+  optsEl.className = 'qz-opts';
+
+  q.opts.forEach((o, i) => {
+    const lbl = document.createElement('div');
+    lbl.className = 'opt-lbl';
+    lbl.textContent = o.l;
+
+    const txt = document.createElement('div');
+    txt.className = 'opt-txt';
+    txt.textContent = o.t;
+
+    const opt = document.createElement('div');
+    opt.className = 'opt';
+    opt.id = `o${i}`;
+    opt.appendChild(lbl);
+    opt.appendChild(txt);
+    // Use closure-safe binding
+    opt.addEventListener('click', (function(idx){ return () => pick(idx); })(i));
+
+    optsEl.appendChild(opt);
+  });
+
+  // Slide wrapper
+  const slide = document.createElement('div');
+  slide.className = 'qz-slide';
+  slide.appendChild(qEl);
+  slide.appendChild(optsEl);
+
+  // Atomically replace all body children — old nodes are fully detached
+  const body = document.getElementById('qz-body');
+  body.scrollTop = 0;
+  body.replaceChildren(slide);   // replaceChildren removes ALL existing children first
+}
+
+function pick(i) {
+  // Highlight selected and block further clicks via CSS class
+  document.querySelectorAll('.opt').forEach(o => o.classList.remove('picked'));
+  document.getElementById('o' + i).classList.add('picked');
+  document.getElementById('qz-body').style.pointerEvents = 'none';
+
+  ans.push(QS[cur].opts[i].v);
+
+  // 0.8s so user sees the highlight, then wipe + advance
+  setTimeout(() => {
+    document.getElementById('qz-body').style.pointerEvents = '';
+    cur++;
+    if (cur >= QS.length) calcResult();
+    else renderQ();
+  }, 800);
+}
+
+function goBack() {
+  if (cur === 0) return;
+  ans.pop();
+  cur--;
+  renderQ();
+}
+
+/* ── Scoring ── */
+function calcResult() {
+  const d1 = score(ans[0], ans[1], 'F', 'S', 'F');
+  const d2 = score(ans[2], ans[3], 'A', 'D', 'D');
+  const d3 = score(ans[4], ans[5], 'C', 'H', 'H');
+  const d4 = score(ans[6], ans[7], 'T', 'I', 'T');
+  showResult(d1 + d2 + d3 + d4);
+}
+
+function score(a, b, posV, negV, tie) {
+  let pos = 0, neg = 0;
+  [a, b].forEach(v => { if (v === posV) pos++; else if (v === negV) neg++; });
+  return pos > neg ? posV : neg > pos ? negV : tie;
+}
+
+/* ── Tier helper ── */
+function getTier(stars) {
+  if (stars >= 5) return { color:'#00c853', label:'Profit Hunter · 利润猎手', rank:'S+', sub:'超越95%的交易者', share:'炫耀一下' };
+  if (stars >= 4) return { color:'#ffd93d', label:'Potential · 潜力股', rank:'A-', sub:'再进一步就是稳定盈利', share:'分享战绩' };
+  return { color:'#ff6b6b', label:'Survivor · 幸存者', rank:'B+', sub:'距离A只差一个习惯', share:'分享给难兄难弟' };
+}
+
+/* ── Stats counter (localStorage) ── */
+function getStats() {
+  const BASE = 2847, now = Date.now();
+  let first = localStorage.getItem('ctti_fv');
+  if (!first) { first = String(now); localStorage.setItem('ctti_fv', first); }
+  const hours = Math.min(Math.floor((now - +first) / 3600000), 720);
+  let n = BASE;
+  for (let h = 0; h < hours; h++) { n += 3 + (+first + h * 7 + h * h * 13) % 6; }
+  return n;
+}
+
+/* ── Result ── */
+function showResult(type) {
+  const r = RESULTS[type] || RESULTS['FDCT'];
+  const tier = getTier(r.stars);
+
+  // 1. Accent color (drives hero border + eye color + tier colors)
+  document.getElementById('pg-res').style.setProperty('--accent', tier.color);
+  document.getElementById('qz-fill').style.width = '100%';
+  show('pg-res');
+
+  // 2. Top label
+  document.getElementById('res-eye').textContent = tier.label;
+
+  // Avatar image
+  const heroEl = document.getElementById('r-avatar');
+  heroEl.innerHTML = `<img src="images/${type}.png" alt="${type}" onerror="this.style.display='none'">`;
+
+
+  // 3. Code + name + desc
+  scramble(document.getElementById('r-code'), type, 900);
+  document.getElementById('r-name').textContent = r.name;
+  document.getElementById('r-desc').textContent = r.desc;
+
+  // 4. Four-dimension grid
+  const DIM_PAIRS = [
+    { letter: type[0], pair: [ans[0], ans[1]] },
+    { letter: type[1], pair: [ans[2], ans[3]] },
+    { letter: type[2], pair: [ans[4], ans[5]] },
+    { letter: type[3], pair: [ans[6], ans[7]] }
+  ];
+  const grid = document.getElementById('r-grid');
+  grid.innerHTML = '';
+  DIM_PAIRS.forEach(function(item, idx) {
+    const l  = item.letter;
+    const dd = DIMS_DETAIL[l] || { name: l, desc: '' };
+    const dc = DIMS[l]        || { color: '#fff' };
+    const sc = item.pair.filter(function(v){ return v === l; }).length;
+    const grade = sc >= 2 ? 'H/6分' : sc === 1 ? 'M/4分' : 'L/2分';
+
+    const cell   = document.createElement('div'); cell.className = 'res-cell';
+    const letter = document.createElement('div'); letter.className = 'cell-letter';
+      letter.textContent = l; letter.style.color = dc.color;
+    const info   = document.createElement('div'); info.className = 'cell-info';
+    const name   = document.createElement('div'); name.className = 'cell-name';
+      name.textContent = dd.name;
+    const desc   = document.createElement('div'); desc.className = 'cell-desc';
+      desc.textContent = dd.desc;
+    const score  = document.createElement('div'); score.className = 'cell-score';
+      score.textContent = grade; score.style.color = dc.color;
+
+    info.appendChild(name); info.appendChild(desc);
+    cell.appendChild(letter); cell.appendChild(info); cell.appendChild(score);
+    grid.appendChild(cell);
+  });
+
+  // 5. Tier card
+  document.getElementById('r-tier').innerHTML = `
+    <div class="res-tier-rank" style="color:${tier.color}">${tier.rank}</div>
+    <div>
+      <div class="res-tier-label" style="color:${tier.color}">${tier.label}</div>
+      <div class="res-tier-sub">${tier.sub}</div>
+    </div>`;
+
+  // 6. Interpretation
+  const interpEl = document.getElementById('r-interp');
+  interpEl.innerHTML = (r.interpretation || r.interp || '文案待补充')
+    .split('\n\n').map(p => `<p style="margin:0 0 10px">${p}</p>`).join('');
+
+  // 7. Stars
+  document.getElementById('r-stars').innerHTML = Array.from({length:5}, (_,i) =>
+    `<span class="star ${i < r.stars ? 'lit' : 'dim'}" style="animation-delay:${.72 + i*.1}s">★</span>`
+  ).join('');
+
+  // 8. Insight cards
+  document.getElementById('r-insights').innerHTML = `
+    <div class="insight-card">
+      <div class="insight-tag adv">⚡ 优势</div>
+      <div class="insight-text">${r.advantage}</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-tag trap">⚠️ 陷阱</div>
+      <div class="insight-text">${r.trap}</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-tag advice">💡 建议</div>
+      <div class="insight-text">${r.advice}</div>
+    </div>`;
+
+  // 10. Stats + share
+  const n = getStats();
+  const pct = TYPE_PCT[type] || '6.3';
+  document.getElementById('r-stats').innerHTML =
+    `<span>已有 <em>${n.toLocaleString()}</em> 位交易者完成测试</span><span class="res-stats-pct">${type} 占 ${pct}%</span>`;
+
+  document.getElementById('share-label').textContent = tier.share;
+  window._resultType = type;
+  window._resultName = r.name;
+}
+
+/* ── Scramble animation ── */
+function scramble(el, final, dur) {
+  const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const steps = 24, iv = dur / steps;
+  let step = 0;
+  const t = setInterval(() => {
+    step++;
+    if (step >= steps) { el.textContent = final; clearInterval(t); return; }
+    const progress = step / steps;
+    el.textContent = final.split('').map((ch, i) =>
+      i / final.length < progress ? ch : alpha[Math.floor(Math.random() * alpha.length)]
+    ).join('');
+  }, iv);
+}
+
+/* ── Share: always copy + show "已复制" ── */
+function shareResult() {
+  const type = window._resultType || '';
+  const name = window._resultName || '';
+  const text = `我的合约交易人格是 ${type}「${name}」\n— CTTI Crypto Trader Type Indicator`;
+  const url  = window.location.href;
+  const full = text + '\n' + url;
+
+  // Always copy to clipboard and show feedback
+  doCopy(full, () => {
+    const lbl = document.getElementById('share-label');
+    lbl.textContent = '已复制 ✓';
+    showToast('链接已复制到剪贴板 ✓');
+    setTimeout(() => { lbl.textContent = '分享结果'; }, 2500);
+  });
+
+  // Also try native share on mobile (fire-and-forget)
+  if (navigator.share) {
+    navigator.share({ title: 'CTTI — Crypto Trader Type Indicator', text, url }).catch(() => {});
+  }
+}
+
+function doCopy(text, onSuccess) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(() => legacyCopy(text, onSuccess));
+  } else {
+    legacyCopy(text, onSuccess);
+  }
+}
+
+function legacyCopy(text, onSuccess) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); onSuccess(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+function restartQuiz() { show('pg-land'); }
+</script>
+
+</div><!-- /.app -->
+</body>
+</html>
