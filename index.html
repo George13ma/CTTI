@@ -1427,12 +1427,17 @@ async function generateCardBlob(type) {
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
-/* ── Share: open X compose directly with text + URL ── */
+/* ── Share: open X compose directly with text + environment-matched URL ── */
+const PROD_URL = 'https://ctti-blush.vercel.app/';
+function getShareUrl() {
+  // prod domain → always use the clean prod URL
+  if (location.hostname === 'ctti-blush.vercel.app') return PROD_URL;
+  // staging / local → share current origin so the tweet links back to the same env
+  return location.origin + '/';
+}
 function shareResult() {
-  const text = `快来测测你的交易人格\n${window.location.href}`;
+  const text = `快来测测你的交易人格\n${getShareUrl()}`;
   const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-  // On mobile, if X app is installed and set to handle twitter.com links,
-  // the system opens the app; otherwise it falls back to X web compose.
   window.location.href = intentUrl;
 }
 
