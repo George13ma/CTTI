@@ -1029,7 +1029,7 @@ const QS_EN_TEXT = [
 ];
 
 /* i18n helpers */
-const t = (k) => COPY[lang][k];
+const tr = (k) => COPY[lang][k];
 const getResults = () => lang === 'en' ? RESULTS_EN : RESULTS;
 const getDims = () => lang === 'en' ? DIMS_EN : DIMS;
 const getDimsDetail = () => lang === 'en' ? DIMS_DETAIL_EN : DIMS_DETAIL;
@@ -1044,7 +1044,7 @@ function applyLang() {
   // update static [data-i18n] elements
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    const val = t(key);
+    const val = tr(key);
     if (val == null) return;
     if (el.getAttribute('data-i18n-html')) el.innerHTML = val;
     else el.textContent = val;
@@ -1621,15 +1621,15 @@ function showResult(type) {
   // 8. Insight cards
   document.getElementById('r-insights').innerHTML = `
     <div class="insight-card">
-      <div class="insight-tag adv">${t('tagAdv')}</div>
+      <div class="insight-tag adv">${tr('tagAdv')}</div>
       <div class="insight-text">${r.advantage}</div>
     </div>
     <div class="insight-card">
-      <div class="insight-tag trap">${t('tagTrap')}</div>
+      <div class="insight-tag trap">${tr('tagTrap')}</div>
       <div class="insight-text">${r.trap}</div>
     </div>
     <div class="insight-card">
-      <div class="insight-tag advice">${t('tagAdvice')}</div>
+      <div class="insight-tag advice">${tr('tagAdvice')}</div>
       <div class="insight-text">${r.advice}</div>
     </div>`;
 
@@ -1728,7 +1728,7 @@ function getShareUrl() {
   return location.origin + '/';
 }
 function shareResult() {
-  const text = `${t('shareText')}\n${getShareUrl()}`;
+  const text = `${tr('shareText')}\n${getShareUrl()}`;
   const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.location.href = intentUrl;
 }
