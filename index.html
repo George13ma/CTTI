@@ -384,7 +384,7 @@
     .cell-info   { flex: 1; min-width: 0; text-align: left; }
     .cell-name   { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
     .cell-desc   { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.4; }
-    .cell-score  { width: 40px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--muted); text-align: right; }
+    .cell-score  { width: 56px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--muted); text-align: right; white-space: nowrap; }
 
     /* ── Tier (rank badge) ── */
     .res-tier {
@@ -404,8 +404,9 @@
     .res-tier-label {
       font-size: 13px; font-weight: 700;
       color: var(--accent); margin-bottom: 4px;
+      text-align: left;
     }
-    .res-tier-sub { font-size: 12px; color: var(--muted); }
+    .res-tier-sub { font-size: 12px; color: var(--muted); text-align: left; }
 
     /* ── Interpretation card ── */
     .res-interp {
@@ -521,6 +522,27 @@
 
     /* ── Shared ── */
     @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Language toggle ── */
+    .lang-toggle {
+      position: absolute; top: 16px; right: 16px; z-index: 50;
+      min-width: 52px; height: 34px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 14px;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.28);
+      border-radius: 100px;
+      color: #fff;
+      font-size: 14px; font-weight: 800; letter-spacing: .08em;
+      cursor: pointer; user-select: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,.25);
+      transition: all .2s;
+    }
+    .lang-toggle:hover, .lang-toggle:active {
+      background: rgba(255,255,255,.18);
+      border-color: rgba(255,255,255,.45);
+      transform: scale(1.04);
+    }
 
     /* ── Share card (hidden offscreen, rendered to PNG via html2canvas) ── */
     #sc-root {
@@ -649,6 +671,10 @@
 <!-- App frame (constrains width, centers on desktop) -->
 <div class="app">
 
+<!-- Language toggle (shared across pages) -->
+<button class="lang-toggle" id="lang-toggle" onclick="toggleLang()">EN</button>
+
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -691,20 +717,20 @@
      LANDING
 ════════════════════════════════════════════ -->
 <div class="page active" id="pg-land">
-  <div class="land-badge">Personality Test · 8 Questions</div>
+  <div class="land-badge" data-i18n="landBadge">人格测试 · 24题</div>
   <div class="land-title">CTTI</div>
   <div class="land-sub">Crypto Trader Type Indicator</div>
-  <p class="land-tagline">测测你是哪种<strong>合约交易者</strong></p>
+  <p class="land-tagline" data-i18n="landTagline" data-i18n-html="1">测测你是哪种<strong>合约交易者</strong></p>
   <button class="btn-primary" onclick="startQuiz()">
-    开始测试
+    <span data-i18n="startBtn">开始测试</span>
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M5 12h14M12 5l7 7-7 7"/>
     </svg>
   </button>
   <div class="land-stats">
-    <div class="stat"><div class="stat-n">16</div><div class="stat-l">交易人格</div></div>
-    <div class="stat"><div class="stat-n">8</div><div class="stat-l">道题目</div></div>
-    <div class="stat"><div class="stat-n">2 min</div><div class="stat-l">快速完成</div></div>
+    <div class="stat"><div class="stat-n">16</div><div class="stat-l" data-i18n="statTypes">交易人格</div></div>
+    <div class="stat"><div class="stat-n">24</div><div class="stat-l" data-i18n="statQs">道题目</div></div>
+    <div class="stat"><div class="stat-n">2 min</div><div class="stat-l" data-i18n="statTime">快速完成</div></div>
   </div>
 </div>
 
@@ -724,7 +750,7 @@
         <span class="qz-num" id="q-cur">1</span>
         <span class="qz-denom">/ 24</span>
       </div>
-      <div class="qz-pct-badge"><span id="q-pct">0</span>% 完成</div>
+      <div class="qz-pct-badge"><span id="q-pct">0</span><span data-i18n="pctDone">% 完成</span></div>
     </div>
     <!-- Dots -->
     <div class="qz-dots" id="qz-dots"></div>
@@ -740,7 +766,7 @@
      RESULT
 ════════════════════════════════════════════ -->
 <div class="page" id="pg-res">
-  <div class="res-eye" id="res-eye">你的合约交易人格是</div>
+  <div class="res-eye" id="res-eye" data-i18n="resEyeDefault">你的合约交易人格是</div>
   <div class="res-hero" id="r-avatar"></div>
   <div class="res-code" id="r-code">FDCT</div>
   <div class="res-name" id="r-name">节奏大师</div>
@@ -749,21 +775,21 @@
   <div class="res-tier" id="r-tier"></div>
 
   <div class="res-interp">
-    <div class="res-interp-title">该人格的简单解读</div>
+    <div class="res-interp-title" data-i18n="interpTitle">该人格的简单解读</div>
     <div class="res-interp-body" id="r-interp">文案待补充</div>
   </div>
 
   <div class="res-grid" id="r-grid"></div>
 
   <div class="res-card">
-    <div class="res-stars-label">潜力评分</div>
+    <div class="res-stars-label" data-i18n="starsLabel">潜力评分</div>
     <div class="res-stars" id="r-stars"></div>
   </div>
 
   <div class="res-insights" id="r-insights"></div>
 
   <div class="res-disclaimer">
-    <div>本测试仅供娱乐，别拿它当交易指南。你可以笑，但别太当真。</div>
+    <div data-i18n="disclaimer">本测试仅供娱乐，别拿它当交易指南。你可以笑，但别太当真。</div>
     <a class="res-disclaimer-author" href="https://x.com/George13ma" target="_blank" rel="noopener">by george13.ma</a>
   </div>
 
@@ -783,12 +809,263 @@
         <polyline points="1 4 1 10 7 10"/>
         <path d="M3.51 15a9 9 0 1 0 .49-4.02"/>
       </svg>
-      重新测试
+      <span data-i18n="retryBtn">重新测试</span>
     </button>
   </div>
 </div>
 
 <script>
+/* ── i18n ── */
+let lang = (function(){
+  try { return localStorage.getItem('ctti_lang') || 'zh'; } catch(e) { return 'zh'; }
+})();
+
+const COPY = {
+  zh: {
+    landBadge:   '人格测试 · 24题',
+    landTagline: '测测你是哪种<strong>合约交易者</strong>',
+    startBtn:    '开始测试',
+    statTypes:   '交易人格',
+    statQs:      '道题目',
+    statTime:    '快速完成',
+    pctDone:     '% 完成',
+    resEyeDefault:'你的合约交易人格是',
+    interpTitle: '该人格的简单解读',
+    starsLabel:  '潜力评分',
+    disclaimer:  '本测试仅供娱乐，别拿它当交易指南。你可以笑，但别太当真。',
+    retryBtn:    '重新测试',
+    shareText:   '快来测测你的交易人格',
+    tagAdv:      '⚡ 优势',
+    tagTrap:     '⚠️ 陷阱',
+    tagAdvice:   '💡 建议',
+    statsLine:   (n,type,pct)=>`<span>已有 <em>${n.toLocaleString()}</em> 位交易者完成测试</span><span class="res-stats-pct">${type} 占 ${pct}%</span>`,
+    tiers: {
+      5: { color:'#00c853', label:'Profit Hunter · 利润猎手', rank:'S+', sub:'超越95%的交易者', share:'炫耀一下' },
+      4: { color:'#ffd93d', label:'Potential · 潜力股',       rank:'A-', sub:'再进一步就是稳定盈利',     share:'分享战绩' },
+      3: { color:'#ff6b6b', label:'Survivor · 幸存者',        rank:'B+', sub:'距离A只差一个习惯',       share:'分享给难兄难弟' }
+    }
+  },
+  en: {
+    landBadge:   'Personality Test · 24 Questions',
+    landTagline: 'Find out what kind of <strong>futures trader</strong> you really are',
+    startBtn:    'Take the Test',
+    statTypes:   'Trader Types',
+    statQs:      'Questions',
+    statTime:    'To Complete',
+    pctDone:     '% done',
+    resEyeDefault:'Your trader type is',
+    interpTitle: 'What this means for you',
+    starsLabel:  'Potential Rating',
+    disclaimer:  "For entertainment only. Don't trade based on a personality quiz. Laugh at yourself — but just a little.",
+    retryBtn:    'Retake the Test',
+    shareText:   'Find out what kind of futures trader you really are',
+    tagAdv:      '⚡ Advantage',
+    tagTrap:     '⚠️ Trap',
+    tagAdvice:   '💡 Advice',
+    statsLine:   (n,type,pct)=>`<span><em>${n.toLocaleString()}</em> traders have taken this test</span><span class="res-stats-pct">${type} — ${pct}%</span>`,
+    tiers: {
+      5: { color:'#00c853', label:'Profit Hunter',  rank:'S+', sub:"You're ahead of 95% of traders",            share:'Show off your result' },
+      4: { color:'#ffd93d', label:'Potential',      rank:'A-', sub:'One edge away from consistent profit',      share:'Share your trader DNA' },
+      3: { color:'#ff6b6b', label:'Survivor',       rank:'B+', sub:'Still standing — that counts for something', share:'Tag a fellow survivor' }
+    }
+  }
+};
+
+const RESULTS_EN = {
+  FACT: { name:"Lightning Sniper", desc:"Pro-level instincts. Just needs a throttle.", stars:4,
+    advantage:"Your execution speed and reaction time put you ahead of 90% of traders. You pull the trigger fast — and you know when to get out.",
+    trap:"Trading too fast burns you out. A losing streak can spiral into revenge trading before you even notice.",
+    advice:"Cap yourself at 3 trades a day. Protect your best setups by not wasting energy on mediocre ones.",
+    interpretation:"You're a lightning trader — fast in, fast out, no hesitation. While others are still analyzing, you've already entered, managed, and exited the trade.\n\nYour edge is real. The execution speed, the quick read on momentum — that's not luck, that's skill built from screen time.\n\nThe one thing holding you back isn't ability. It's pace. Cut your trade frequency by 30%, focus only on your highest-conviction setups, and your equity curve will smooth out significantly." },
+  FACI: { name:"Instinct Striker", desc:"Natural talent. Needs a filter system.", stars:4,
+    advantage:"Your market feel is genuinely sharp. You pick up on things others miss — and that instinct was earned, not inherited.",
+    trap:"Intuition and impulse can look identical in the moment. When your state is off, the losses stack fast.",
+    advice:"Before every entry, ask yourself one question: Is this intuition or emotion? If you can't answer it with logic, stay out.",
+    interpretation:"You're the trader who just feels it before anyone else does. That's not nothing — it's the result of hours of screen time turning into genuine pattern recognition.\n\nWhen you're in flow, you're untouchable. The reads come easy, the entries are clean.\n\nThe risk is that intuition and impulse are hard to tell apart when you're caught up in a move. Build one filter: before you enter, name the reason. If you can't name it, it's impulse — not instinct." },
+  FAHT: { name:"All-or-Nothing", desc:"Strong conviction. Conviction needs a brake.", stars:3,
+    advantage:"You commit fully to your ideas and don't get shaken out by noise. That's a real edge in a market designed to spook you.",
+    trap:"Full conviction sizing with no stop loss is the most dangerous combination in trading. One wrong call can wipe out months of gains.",
+    advice:"Set a hard stop on every trade — no exceptions. No matter how strong the thesis, if it hits the line, you're out.",
+    interpretation:"You back your ideas hard, and when you're right, you win big. There's something admirable about that level of conviction in a market full of indecision.\n\nBut here's the reality: conviction without a stop loss isn't a strategy — it's a prayer. Even your best setups will be wrong sometimes.\n\nGive your conviction a circuit breaker. Set a line where the trade is proven wrong, and honor it. Protect the capital so you can stay in the game long enough for the good setups to compound." },
+  FAHI: { name:"Adrenaline Trader", desc:"Rides every wave. Needs to learn to bank gains.", stars:3,
+    advantage:"You've lived through more market scenarios than most traders ever will. That experience is worth something.",
+    trap:"High volatility, no stops, high frequency — this combination produces wild swings. Big wins are real, but so are the wipeouts.",
+    advice:"Every time you hit a significant profit, move 20% to cold storage. No exceptions. Let that money be untouchable.",
+    interpretation:"You've ridden the rollercoaster more times than most traders have even opened charts. You've seen big wins, big losses, and everything in between — and you're still here. That takes a certain kind of toughness.\n\nThe challenge isn't finding the trades. It's keeping what you make. Your current approach produces real highs, but the variance makes it hard to build lasting equity.\n\nStart protecting your wins. A simple rule: after every significant profit, 20% goes somewhere you can't easily touch it. Build a floor while you keep trading the volatility you love." },
+  FDCT: { name:"The Rhythm Trader", desc:"System is built. Now fine-tune it.", stars:5,
+    advantage:"You're one of the rare few who can trade actively and stay disciplined. Position sizing, stop losses, technical entries — your system actually works.",
+    trap:"Overtrading is the silent killer. Fee drag adds up, and sometimes the best trade is no trade.",
+    advice:"Track your weekly fee spend. If it exceeds 20% of gross profit, you're overtrading. Trim the low-conviction setups first.",
+    interpretation:"You've done the work most traders skip — building a real system with real rules. High frequency with discipline is one of the hardest things to execute in this market, and you're doing it.\n\nYour setup is solid. The edges are already there.\n\nThe one leak to watch for is overtrading. More trades doesn't mean more profit. Run a weekly fee audit — if friction costs are eating too deep into returns, cut the marginal setups. The best version of your system is the one that does less, better." },
+  FDCI: { name:"Adaptive Gunslinger", desc:"Flexibility is the edge. Add structure to go further.", stars:4,
+    advantage:"You adapt fast. You don't get married to a bias, and you can shift direction when the market shifts. That's harder to develop than most traders realize.",
+    trap:"Flexibility without a framework becomes inconsistency. Chasing both directions can mean you're always a step behind.",
+    advice:"Pick a directional bias at the start of each session — long only or short only for the day. Commit to it. You'll be surprised how much this sharpens your reads.",
+    interpretation:"You move with the market, not against it. When most traders are stuck defending a wrong bias, you've already flipped and found the new direction. That's a real skill.\n\nThe growth edge is structure. Right now your adaptability is reactive — you respond to what happens. The upgrade is being adaptive within a framework, so you're not just following the market but anticipating it.\n\nTry this: before each session, pick your bias for the day and trade only that direction. It forces conviction. And conviction, combined with your natural flexibility, is a powerful combination." },
+  FDHT: { name:"The Chart Believer", desc:"Solid technical foundation. Learn to admit when the chart is wrong.", stars:4,
+    advantage:"Your deep belief in technical analysis keeps you grounded. You have a framework, and you follow it — that alone puts you ahead of most.",
+    trap:"Charts are probability tools, not prophecy. The market doesn't owe you the move just because the setup was clean.",
+    advice:"Define an invalidation level for every trade — a price where the chart thesis is broken. When it hits, you're out. No re-evaluation, no waiting.",
+    interpretation:"You trust the chart, and that trust is earned — technical analysis works, and your commitment to it gives you an edge most emotional traders don't have.\n\nThe vulnerability is what happens when the chart is wrong. Because it will be wrong. Sometimes often.\n\nBuild one habit: before you enter, define the exact price where your thesis is invalidated. Not a loose idea — a specific level. When it hits, you exit. That single discipline will protect your gains and keep the technical edge intact." },
+  FDHI: { name:"The Drifter", desc:"Has an edge. Needs to make it visible.", stars:3,
+    advantage:"You think for yourself. You're not following signals or copying calls — you've developed your own read on the market.",
+    trap:"An unexamined edge is hard to replicate. You might be winning or losing without knowing why — which makes it hard to improve.",
+    advice:"Write one sentence before every trade: why am I entering this? Review it after the trade closes. Over time, patterns will emerge.",
+    interpretation:"You have something valuable: an independent perspective on the market. You're not noise-following, not signal-chasing — you have your own feel, and that matters.\n\nThe challenge is that intuition without documentation is hard to improve. You don't know which calls came from genuine insight and which came from boredom or noise.\n\nStart a trade log. One sentence per entry: why did I take this trade? After 30 trades, you'll start to see which of your instincts are actually reliable — and which ones to ignore." },
+  SACT: { name:"Cold-Blooded Hunter", desc:"Closest thing to a professional trader mindset.", stars:5,
+    advantage:"Patience is your edge. You don't force trades — you wait for the market to come to you, then strike with precision.",
+    trap:"Waiting too long can mean missing real moves. And sometimes the 'perfect setup' you're waiting for doesn't come.",
+    advice:"Set a maximum waiting period. If you haven't found a trade in X days, take a small position just to stay connected to the market.",
+    interpretation:"You're the trader who sits in cash while everyone else is trading noise — and you're right to. Patience is one of the most underrated edges in crypto, where most people overtrade and overpay in fees.\n\nYou're as close to a professional mindset as this test measures.\n\nThe one risk is analysis paralysis or perfectionism. The perfect entry doesn't always come. Build a rule: if you've been out of the market for more than X days, take a small position to stay sharp. Don't let patience become avoidance." },
+  SACI: { name:"The Leopard", desc:"High-end approach. Keep the instincts sharp.", stars:4,
+    advantage:"Your intuition has been calibrated by time in the market. You don't react to everything — only to what matters. That selectivity is rare.",
+    trap:"Instincts dull without use. Extended periods off the market can erode the edge you've built.",
+    advice:"Even when you're not trading, run through charts daily. Keep the pattern recognition active. An unused edge fades.",
+    interpretation:"You're playing a high-level game — selective entries, intuition-driven, patient. Most traders who try this style get stopped out by boredom or FOMO. You've built the discipline to wait.\n\nThe maintenance risk is real though. Intuition is a perishable skill. Take too long off the market and the reads get stale.\n\nStay engaged even between trades. Spend 20 minutes a day on charts, not to trade, but to keep the pattern recognition calibrated. Think of it as keeping your edge in shape." },
+  SAHT: { name:"Diamond Hands", desc:"Conviction is real. It needs a circuit breaker.", stars:3,
+    advantage:"You have genuine long-term conviction and you don't panic-sell into volatility. That's rarer than it sounds.",
+    trap:"Diamond hands only work when the direction is right. If you're wrong and you don't stop out, it goes to zero.",
+    advice:"Set a conviction stop — a percentage loss where you're forced to re-examine the thesis, not just hold harder.",
+    interpretation:"You believe in your positions, and you hold through the noise. When others panic, you add. There's a version of this that's genuinely profitable — the traders who held BTC through every drawdown know what that looks like.\n\nThe danger is confusing conviction with stubbornness. Strong hands are an asset only when the thesis is intact.\n\nBuild a rule: at a certain loss threshold, you're required to re-examine the entire thesis from scratch. Not to automatically cut — but to honestly ask if the original reason to hold still exists. If it does, hold. If it doesn't, exit." },
+  SAHI: { name:"The Zen Trader", desc:"Best mindset in the game. Needs to activate it.", stars:3,
+    advantage:"You don't spiral. You don't revenge trade. You don't panic. In a market engineered to trigger emotional responses, your composure is a genuine edge.",
+    trap:"Calm and checked-out are different things. You might be emotionally detached from a position that needs active management.",
+    advice:"Schedule a 10-minute weekly position review. Ask yourself: if I had no position right now, would I enter this trade today? If no, it's time to exit.",
+    interpretation:"You have something most traders spend years trying to develop: genuine emotional stability. You're not reacting to every candle, not losing sleep over drawdowns, not doom-scrolling for confirmation.\n\nThat's the foundation of good trading. Seriously.\n\nThe growth edge is turning that calm into active management rather than passive holding. Your positions deserve a weekly check-in. Not to second-guess — just to confirm the thesis is still alive. Five minutes a week to make sure you haven't gone from zen to asleep." },
+  SDCT: { name:"The Rational Architect", desc:"The most technically correct trader profile.", stars:5,
+    advantage:"Low frequency keeps costs down. Position sizing controls risk. Stops protect capital. Charts give you direction. Your system is complete.",
+    trap:"Over-optimizing can mean missing high-conviction opportunistic trades. Sometimes the market rewards the bold.",
+    advice:"Keep 10% of your capital as an 'opportunity fund.' When a strong signal hits, give yourself permission to be aggressive. You've earned it.",
+    interpretation:"You've built the kind of trading system most people only read about. Low turnover, disciplined sizing, consistent stop placement, technical entries. If you stay consistent, long-term profitability is the expected outcome — not the exception.\n\nYou're one of the few profiles where the main advice is: don't change much.\n\nThe one addition worth making is an opportunity fund. Keep a small allocation specifically for high-conviction setups where you allow yourself to size up. Your system is so disciplined that a little calculated aggression won't hurt it — and it might unlock some of your biggest wins." },
+  SDCI: { name:"The Seasoned Operator", desc:"Veteran trader energy. Stay sharp.", stars:5,
+    advantage:"You've combined intuition with risk management — two things most traders treat as opposites. You trust your reads without letting them destroy your account.",
+    trap:"Instincts need to stay calibrated. Extended periods of low activity can dull the edge you've built up over time.",
+    advice:"Stay in the game. Even if it's small, make 2–3 trades a month just to keep your market feel active. An unused edge fades.",
+    interpretation:"You're operating at a level most traders don't reach. Your instincts are real and battle-tested, and you've learned how to size positions in a way that survives being wrong.\n\nThat combination — real edge, real risk management — is what separates the traders who last from the ones who don't.\n\nThe maintenance note: don't go too quiet for too long. Your edge is partly feel-based, and feel needs active exposure to stay sharp. A few trades a month is all it takes to keep the instincts calibrated. Think of it as keeping the engine warm." },
+  SDHT: { name:"The Chart Keeper", desc:"Right framework. Add a time stop to complete it.", stars:4,
+    advantage:"Your trust in technical analysis gives you composure during volatility. You're not getting shaken out by noise — you're holding for the move.",
+    trap:"Charts are probabilistic, not deterministic. A trade that doesn't move in your favor within a reasonable timeframe is telling you something.",
+    advice:"Add a time stop to your process: if a trade hasn't moved in your direction within X days, cut half. Time is a signal too.",
+    interpretation:"You've built your trading around technical conviction, and that gives you something valuable: a framework. You're not guessing — you have reasons for every position, and you know what you're looking for.\n\nThe upgrade to your system is a time dimension. Price stops are good. But sometimes a trade doesn't get stopped out — it just slowly goes nowhere, tying up capital and attention that could be deployed elsewhere.\n\nAdd a simple rule: if X days pass without meaningful progress toward your target, reduce the position by half. You're not admitting you're wrong — you're respecting the cost of dead capital." },
+  SDHI: { name:"The Hibernator", desc:"Unshakeable composure. Don't let it become autopilot.", stars:3,
+    advantage:"You're immune to the noise that destroys most traders — the group chats, the Twitter calls, the panic sells. Your ability to tune it out is a genuine competitive advantage.",
+    trap:"There's a difference between patient holding and forgotten positions. You might be holding something you stopped actively managing weeks ago.",
+    advice:"Set a weekly calendar reminder: position check-in. One question — do I still want to own this? If yes, hold. If you have to think too hard, that's your answer.",
+    interpretation:"While everyone else is reacting to every wick and headline, you're the one who just... doesn't. That's not apathy — that's discipline. The market is designed to make you do things. You've learned not to.\n\nThe distinction to stay aware of is: composed holding versus forgotten holding. The best traders who hold long-term are actively choosing to hold every week. They're not just not selling — they're intentionally staying in.\n\nBuild one habit: a weekly 5-minute check-in on every open position. One question each: do I still want this? If the answer is a confident yes, hold on. If you have to think about it, consider whether that's conviction or inertia." }
+};
+
+const DIMS_EN = {
+  F: { color:"#a78bfa", name:"Lightning Entry",  desc:"High-frequency" },
+  S: { color:"#67e8f9", name:"Patient Hunter",   desc:"Low-frequency" },
+  A: { color:"#f87171", name:"All-In",           desc:"Full conviction" },
+  D: { color:"#34d399", name:"Position Builder", desc:"Scaled entries" },
+  C: { color:"#67e8f9", name:"Iron Stop",        desc:"Disciplined exit" },
+  H: { color:"#fbbf24", name:"Hold the Line",    desc:"Conviction hold" },
+  T: { color:"#818cf8", name:"Chart-Driven",     desc:"Technical" },
+  I: { color:"#f472b6", name:"Gut-Driven",       desc:"Intuition-first" }
+};
+
+const DIMS_DETAIL_EN = {
+  F: { name:"Lightning Entry",  desc:"High-frequency trader, always hunting the next move" },
+  S: { name:"Patient Hunter",   desc:"Waits for high-probability setups. Quality over quantity" },
+  A: { name:"All-In",           desc:"Full conviction sizing — you back your calls hard" },
+  D: { name:"Position Builder", desc:"Scaled entries, controlled risk — you play the long game" },
+  C: { name:"Iron Stop",        desc:"Stops are non-negotiable. You cut losses and move on" },
+  H: { name:"Hold the Line",    desc:"You ride drawdowns. Conviction is your edge" },
+  T: { name:"Chart-Driven",     desc:"Technical analysis first. The chart doesn't lie" },
+  I: { name:"Gut-Driven",       desc:"Instinct over indicators. You feel the market" }
+};
+
+/* English translation of questions — parallel to QS order, only text fields */
+const QS_EN_TEXT = [
+  { q:"How many trades do you place per week?",
+    opts:["More than 10","3–10","Fewer than 3"] },
+  { q:"When you have no open position, you:",
+    opts:["Feel restless and hunt for setups","Watch the market, take trades as they appear","Feel fine, you'll wait it out"] },
+  { q:"When the market is ranging / choppy:",
+    opts:["Keep trading — even chop has opportunities","Reduce frequency, wait for direction"] },
+  { q:"When did you last go more than a week without trading?",
+    opts:["Can't remember — I can't stop","Recently — it's normal for me","I've done it on purpose, but rarely"] },
+  { q:"A friend says a coin is about to pump. You:",
+    opts:["Jump in first, don't want to miss it","Wait and see, no rush","Do some research, enter only if the thesis holds"] },
+  { q:"How do you feel about missing out (FOMO)?",
+    opts:["Hate it — I'd rather lose money than miss a move","It's fine, there's always another trade"] },
+  { q:"How much of your total capital do you usually risk per trade?",
+    opts:["Over 50%","20–50%","Under 20%"] },
+  { q:"When you spot a high-conviction setup, you:",
+    opts:["Go all in immediately","Open a partial position, add if it confirms"] },
+  { q:"How many positions do you hold simultaneously at most?",
+    opts:["Just 1 — full focus","2–3 — some diversification","4 or more — multiple shots on goal"] },
+  { q:"After a 30% drawdown, how do you handle the remaining capital?",
+    opts:["Go all in to claw it back","Small positions, slow and steady","Pause trading, cool off for a few days"] },
+  { q:"What's your usual logic for adding to positions?",
+    opts:["If I'm right, I add — pyramid up","I average down when it drops","Rarely add — initial size is final size"] },
+  { q:"If this were your last chunk of capital, you'd:",
+    opts:["All in on one high-conviction setup","Split it into pieces and grind back","Do nothing, wait until you're in better form"] },
+  { q:"Do you set a stop loss before entering?",
+    opts:["Always — if it hits, I'm out","I set it but often cancel it manually","No stop, I play it by ear"] },
+  { q:"Your trade is down 20% — you:",
+    opts:["I'd have stopped out long before this","Wait and see, it might come back","Add to the position and average down"] },
+  { q:"What's the longest you've held a losing trade?",
+    opts:["Over a month","Cut it within a week","A few days — I couldn't take it longer"] },
+  { q:"Your stop just got hit. First reaction?",
+    opts:["Move on — next trade","Painful — feels like it should've held","Start questioning if my stop was too tight"] },
+  { q:'Do you believe "it\'s not a loss until you close"?',
+    opts:["Yes — paper losses aren't real","No — open losses are real losses","Sometimes I tell myself that"] },
+  { q:"When the market moves against you, when do you exit?",
+    opts:["At my pre-set stop — automatic","When the pain becomes unbearable","Wait for a bounce, then exit near breakeven"] },
+  { q:"What do you rely on most to enter a trade?",
+    opts:["Candles, moving averages, indicators","Gut feel, news, when it feels right","A mix of both"] },
+  { q:"The chart says sell, but your gut says it'll go higher:",
+    opts:["Listen to the chart — sell","Listen to the gut — hold"] },
+  { q:"When reviewing trades, what do you focus on?",
+    opts:["Price action and entry quality","Whether my feel and read were right","I rarely review"] },
+  { q:"A coin you've never studied pumps hard. You:",
+    opts:["Check the chart — enter if structure supports it","Jump in on momentum — no time to study","Pass — I don't touch what I don't know"] },
+  { q:"Which trade rationale do you trust most?",
+    opts:["Clear support/resistance and technical signals","Screen time telling you something's about to move","A recommendation that aligns with your gut"] },
+  { q:"After 3 losing trades in a row, how do you adjust?",
+    opts:["Re-examine charts, find what went wrong","Something's off — step away and reset","Try a different coin"] }
+];
+
+/* i18n helpers */
+const t = (k) => COPY[lang][k];
+const getResults = () => lang === 'en' ? RESULTS_EN : RESULTS;
+const getDims = () => lang === 'en' ? DIMS_EN : DIMS;
+const getDimsDetail = () => lang === 'en' ? DIMS_DETAIL_EN : DIMS_DETAIL;
+const getQText = (i) => {
+  if (lang === 'en' && QS_EN_TEXT[i]) {
+    return { q: QS_EN_TEXT[i].q, opts: QS_EN_TEXT[i].opts };
+  }
+  return { q: QS[i].q, opts: QS[i].opts.map(o => o.t) };
+};
+
+function applyLang() {
+  // update static [data-i18n] elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val == null) return;
+    if (el.getAttribute('data-i18n-html')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+  // update lang toggle label
+  const tg = document.getElementById('lang-toggle');
+  if (tg) tg.textContent = lang === 'zh' ? 'EN' : '中';
+  // update html lang attribute
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+}
+
+function toggleLang() {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  try { localStorage.setItem('ctti_lang', lang); } catch(e) {}
+  applyLang();
+  // re-render dynamic page if currently on quiz or result
+  const activePage = document.querySelector('.page.active');
+  if (activePage && activePage.id === 'pg-quiz') renderQ();
+  else if (activePage && activePage.id === 'pg-res' && window._resultType) showResult(window._resultType);
+}
+
 /* ── Data ── */
 const QS = [
   /* ── 维度1：交易频率 F（闪电出击）vs S（潜伏等待）── */
@@ -1140,6 +1417,7 @@ function startQuiz() {
 
 function renderQ() {
   const q   = QS[cur];
+  const qt  = getQText(cur);
   const pct = Math.round((cur / QS.length) * 100);
 
   document.getElementById('q-cur').textContent   = cur + 1;
@@ -1160,7 +1438,7 @@ function renderQ() {
   // Question text
   const qEl = document.createElement('div');
   qEl.className = 'qz-q';
-  qEl.textContent = q.q;
+  qEl.textContent = qt.q;
 
   // Options container — freshly created, exact count for this question
   const optsEl = document.createElement('div');
@@ -1173,7 +1451,7 @@ function renderQ() {
 
     const txt = document.createElement('div');
     txt.className = 'opt-txt';
-    txt.textContent = o.t;
+    txt.textContent = qt.opts[i] || o.t;
 
     const opt = document.createElement('div');
     opt.className = 'opt';
@@ -1242,11 +1520,12 @@ function majority(votes, posV, negV) {
   return pos >= neg ? posV : negV;
 }
 
-/* ── Tier helper ── */
+/* ── Tier helper (lang-aware) ── */
 function getTier(stars) {
-  if (stars >= 5) return { color:'#00c853', label:'Profit Hunter · 利润猎手', rank:'S+', sub:'超越95%的交易者', share:'炫耀一下' };
-  if (stars >= 4) return { color:'#ffd93d', label:'Potential · 潜力股', rank:'A-', sub:'再进一步就是稳定盈利', share:'分享战绩' };
-  return { color:'#ff6b6b', label:'Survivor · 幸存者', rank:'B+', sub:'距离A只差一个习惯', share:'分享给难兄难弟' };
+  const tiers = COPY[lang].tiers;
+  if (stars >= 5) return tiers[5];
+  if (stars >= 4) return tiers[4];
+  return tiers[3];
 }
 
 /* ── Stats counter (localStorage) ── */
@@ -1264,7 +1543,8 @@ function getStats() {
 function showResult(type) {
   gtag('event', 'quiz_completed', { trader_type: type });
   if (window.va) window.va('event', { name: 'quiz_completed', data: { type: type } });
-  const r = RESULTS[type] || RESULTS['FDCT'];
+  const RS = getResults();
+  const r = RS[type] || RS['FDCT'];
   const tier = getTier(r.stars);
 
   // 1. Accent color (drives hero border + eye color + tier colors)
@@ -1294,12 +1574,15 @@ function showResult(type) {
   ];
   const grid = document.getElementById('r-grid');
   grid.innerHTML = '';
+  const DDs = getDimsDetail();
+  const Ds  = getDims();
+  const gradeSuffix = lang === 'en' ? ' pts' : '分';
   DIM_PAIRS.forEach(function(item, idx) {
     const l  = item.letter;
-    const dd = DIMS_DETAIL[l] || { name: l, desc: '' };
-    const dc = DIMS[l]        || { color: '#fff' };
+    const dd = DDs[l] || { name: l, desc: '' };
+    const dc = Ds[l]  || { color: '#fff' };
     const sc = item.pair.filter(function(v){ return v === l; }).length;
-    const grade = sc >= 2 ? 'H/6分' : sc === 1 ? 'M/4分' : 'L/2分';
+    const grade = sc >= 2 ? `H/6${gradeSuffix}` : sc === 1 ? `M/4${gradeSuffix}` : `L/2${gradeSuffix}`;
 
     const cell   = document.createElement('div'); cell.className = 'res-cell';
     const letter = document.createElement('div'); letter.className = 'cell-letter';
@@ -1327,7 +1610,7 @@ function showResult(type) {
 
   // 6. Interpretation
   const interpEl = document.getElementById('r-interp');
-  interpEl.innerHTML = (r.interpretation || r.interp || '文案待补充')
+  interpEl.innerHTML = (r.interpretation || r.interp || (lang === 'en' ? 'Coming soon.' : '文案待补充'))
     .split('\n\n').map(p => `<p style="margin:0 0 10px">${p}</p>`).join('');
 
   // 7. Stars
@@ -1338,23 +1621,22 @@ function showResult(type) {
   // 8. Insight cards
   document.getElementById('r-insights').innerHTML = `
     <div class="insight-card">
-      <div class="insight-tag adv">⚡ 优势</div>
+      <div class="insight-tag adv">${t('tagAdv')}</div>
       <div class="insight-text">${r.advantage}</div>
     </div>
     <div class="insight-card">
-      <div class="insight-tag trap">⚠️ 陷阱</div>
+      <div class="insight-tag trap">${t('tagTrap')}</div>
       <div class="insight-text">${r.trap}</div>
     </div>
     <div class="insight-card">
-      <div class="insight-tag advice">💡 建议</div>
+      <div class="insight-tag advice">${t('tagAdvice')}</div>
       <div class="insight-text">${r.advice}</div>
     </div>`;
 
   // 10. Stats + share
   const n = getStats();
   const pct = TYPE_PCT[type] || '6.3';
-  document.getElementById('r-stats').innerHTML =
-    `<span>已有 <em>${n.toLocaleString()}</em> 位交易者完成测试</span><span class="res-stats-pct">${type} 占 ${pct}%</span>`;
+  document.getElementById('r-stats').innerHTML = COPY[lang].statsLine(n, type, pct);
 
   document.getElementById('share-label').textContent = tier.share;
   window._resultType = type;
@@ -1446,7 +1728,7 @@ function getShareUrl() {
   return location.origin + '/';
 }
 function shareResult() {
-  const text = `快来测测你的交易人格\n${getShareUrl()}`;
+  const text = `${t('shareText')}\n${getShareUrl()}`;
   const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.location.href = intentUrl;
 }
@@ -1478,6 +1760,9 @@ function showToast(msg) {
 }
 
 function restartQuiz() { show('pg-land'); }
+
+// Apply saved language on initial load
+applyLang();
 </script>
 
 </div><!-- /.app -->
