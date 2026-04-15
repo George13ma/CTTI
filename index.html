@@ -708,7 +708,7 @@
     </div>
     <div class="sc-footer">
       <div class="sc-stars" id="sc-stars"></div>
-      <div class="sc-domain">ctti-blush.vercel.app</div>
+      <div class="sc-domain">tradertest.vercel.app</div>
     </div>
   </div>
 </div>
@@ -1720,10 +1720,10 @@ async function generateCardBlob(type) {
 }
 
 /* ── Share: open X compose directly with text + environment-matched URL ── */
-const PROD_URL = 'https://ctti-blush.vercel.app/';
+const PROD_URL = 'https://tradertest.vercel.app/';
 function getShareUrl() {
   // prod domain → always use the clean prod URL
-  if (location.hostname === 'ctti-blush.vercel.app') return PROD_URL;
+  if (location.hostname === 'tradertest.vercel.app') return PROD_URL;
   // staging / local → share current origin so the tweet links back to the same env
   return location.origin + '/';
 }
