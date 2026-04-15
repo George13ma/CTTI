@@ -972,11 +972,69 @@ const DIMS_DETAIL_EN = {
   I: { name:"Gut-Driven",       desc:"Instinct over indicators. You feel the market" }
 };
 
+/* English translation of questions — parallel to QS order, only text fields */
+const QS_EN_TEXT = [
+  { q:"How many trades do you place per week?",
+    opts:["More than 10","3–10","Fewer than 3"] },
+  { q:"When you have no open position, you:",
+    opts:["Feel restless and hunt for setups","Watch the market, take trades as they appear","Feel fine, you'll wait it out"] },
+  { q:"When the market is ranging / choppy:",
+    opts:["Keep trading — even chop has opportunities","Reduce frequency, wait for direction"] },
+  { q:"When did you last go more than a week without trading?",
+    opts:["Can't remember — I can't stop","Recently — it's normal for me","I've done it on purpose, but rarely"] },
+  { q:"A friend says a coin is about to pump. You:",
+    opts:["Jump in first, don't want to miss it","Wait and see, no rush","Do some research, enter only if the thesis holds"] },
+  { q:"How do you feel about missing out (FOMO)?",
+    opts:["Hate it — I'd rather lose money than miss a move","It's fine, there's always another trade"] },
+  { q:"How much of your total capital do you usually risk per trade?",
+    opts:["Over 50%","20–50%","Under 20%"] },
+  { q:"When you spot a high-conviction setup, you:",
+    opts:["Go all in immediately","Open a partial position, add if it confirms"] },
+  { q:"How many positions do you hold simultaneously at most?",
+    opts:["Just 1 — full focus","2–3 — some diversification","4 or more — multiple shots on goal"] },
+  { q:"After a 30% drawdown, how do you handle the remaining capital?",
+    opts:["Go all in to claw it back","Small positions, slow and steady","Pause trading, cool off for a few days"] },
+  { q:"What's your usual logic for adding to positions?",
+    opts:["If I'm right, I add — pyramid up","I average down when it drops","Rarely add — initial size is final size"] },
+  { q:"If this were your last chunk of capital, you'd:",
+    opts:["All in on one high-conviction setup","Split it into pieces and grind back","Do nothing, wait until you're in better form"] },
+  { q:"Do you set a stop loss before entering?",
+    opts:["Always — if it hits, I'm out","I set it but often cancel it manually","No stop, I play it by ear"] },
+  { q:"Your trade is down 20% — you:",
+    opts:["I'd have stopped out long before this","Wait and see, it might come back","Add to the position and average down"] },
+  { q:"What's the longest you've held a losing trade?",
+    opts:["Over a month","Cut it within a week","A few days — I couldn't take it longer"] },
+  { q:"Your stop just got hit. First reaction?",
+    opts:["Move on — next trade","Painful — feels like it should've held","Start questioning if my stop was too tight"] },
+  { q:'Do you believe "it\'s not a loss until you close"?',
+    opts:["Yes — paper losses aren't real","No — open losses are real losses","Sometimes I tell myself that"] },
+  { q:"When the market moves against you, when do you exit?",
+    opts:["At my pre-set stop — automatic","When the pain becomes unbearable","Wait for a bounce, then exit near breakeven"] },
+  { q:"What do you rely on most to enter a trade?",
+    opts:["Candles, moving averages, indicators","Gut feel, news, when it feels right","A mix of both"] },
+  { q:"The chart says sell, but your gut says it'll go higher:",
+    opts:["Listen to the chart — sell","Listen to the gut — hold"] },
+  { q:"When reviewing trades, what do you focus on?",
+    opts:["Price action and entry quality","Whether my feel and read were right","I rarely review"] },
+  { q:"A coin you've never studied pumps hard. You:",
+    opts:["Check the chart — enter if structure supports it","Jump in on momentum — no time to study","Pass — I don't touch what I don't know"] },
+  { q:"Which trade rationale do you trust most?",
+    opts:["Clear support/resistance and technical signals","Screen time telling you something's about to move","A recommendation that aligns with your gut"] },
+  { q:"After 3 losing trades in a row, how do you adjust?",
+    opts:["Re-examine charts, find what went wrong","Something's off — step away and reset","Try a different coin"] }
+];
+
 /* i18n helpers */
 const t = (k) => COPY[lang][k];
 const getResults = () => lang === 'en' ? RESULTS_EN : RESULTS;
 const getDims = () => lang === 'en' ? DIMS_EN : DIMS;
 const getDimsDetail = () => lang === 'en' ? DIMS_DETAIL_EN : DIMS_DETAIL;
+const getQText = (i) => {
+  if (lang === 'en' && QS_EN_TEXT[i]) {
+    return { q: QS_EN_TEXT[i].q, opts: QS_EN_TEXT[i].opts };
+  }
+  return { q: QS[i].q, opts: QS[i].opts.map(o => o.t) };
+};
 
 function applyLang() {
   // update static [data-i18n] elements
@@ -1355,6 +1413,7 @@ function startQuiz() {
 
 function renderQ() {
   const q   = QS[cur];
+  const qt  = getQText(cur);
   const pct = Math.round((cur / QS.length) * 100);
 
   document.getElementById('q-cur').textContent   = cur + 1;
@@ -1375,7 +1434,7 @@ function renderQ() {
   // Question text
   const qEl = document.createElement('div');
   qEl.className = 'qz-q';
-  qEl.textContent = q.q;
+  qEl.textContent = qt.q;
 
   // Options container — freshly created, exact count for this question
   const optsEl = document.createElement('div');
@@ -1388,7 +1447,7 @@ function renderQ() {
 
     const txt = document.createElement('div');
     txt.className = 'opt-txt';
-    txt.textContent = o.t;
+    txt.textContent = qt.opts[i] || o.t;
 
     const opt = document.createElement('div');
     opt.className = 'opt';
